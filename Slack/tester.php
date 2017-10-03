@@ -36,29 +36,6 @@
 	$numRows = deletePost($post_id, $user_id);
 	echo 'deleted items:' . $numRows;
 	*/
-
-
-
-
-	/*
-		Todo:
-		
-		login(email, password)
-			change the type that is returned to an array
-			
-			if the user is in the DB
-				array(fname, lname)
-			else
-				array()
-
-		
-		post()
-		- wrap main block of post inside try catch
-		- return the number of rows affected by insert operation
-		- set timezone to EST
-	*/
-
-	
 	
 
 
