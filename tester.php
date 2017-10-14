@@ -15,18 +15,18 @@
 	*/
 	
 	
-	/*
+	
 	//POST
-	$channel_id = 6;
-	$parent_id = 6;
+	$channel_id = 5;
+	$parent_id = 5;
 	$content = 'it is right.';
 	$fname= 'Tow';
 	$lname = 'Mater';
-	$user_id = 2;
+	$user_id = 4;
 
 	$numRows = post($channel_id, $parent_id, $content, $fname, $lname, $user_id);
 	echo 'posted items:' . $numRows;
-	*/
+	
 
 	
 	/*

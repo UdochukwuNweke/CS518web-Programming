@@ -4,7 +4,7 @@
 	$serverName = 'localhost';
 	$userName = 'unweke';
 	$password = 'gaccess123';
-	$dbname = 'milestone1dump';
+	$dbname = 'CS518DB';
 
 
 

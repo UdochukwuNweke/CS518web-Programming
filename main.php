@@ -24,8 +24,7 @@ function authenticateUser()
 			count( $fnameLname ) === 0
 		  )
 		{
-			//header('Location: index.php');
-			echo"Please try again"
+			header('Location: index.php');
 			exit;
 		}
 		else

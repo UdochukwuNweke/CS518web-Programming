@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Oct 03, 2017 at 02:30 PM
+-- Generation Time: Oct 14, 2017 at 05:14 AM
 -- Server version: 5.7.19-0ubuntu0.16.04.1
 -- PHP Version: 7.0.22-0ubuntu0.16.04.1
 
@@ -17,7 +17,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `milestone1dump`
+-- Database: `CS518DB`
 --
 
 -- --------------------------------------------------------
@@ -59,7 +59,8 @@ INSERT INTO `Post` (`post_id`, `datetime`, `channel_id`, `parent_id`, `content`,
 (29, '2017-09-29 15:37:32', 5, 5, 'it is right. I have to be sure and convinced.', 'Tow', 'Mater', 1),
 (31, '2017-10-01 22:43:10', 5, 5, 'it is right. I have to be sure and convinced.', 'Tow', 'Mater', 1),
 (54, '2017-10-02 17:20:17', 6, 6, 'it is right.', 'Tow', 'Mater', 1),
-(55, '2017-10-03 02:02:15', 6, 6, 'it is right.', 'Tow', 'Mater', 2);
+(55, '2017-10-03 02:02:15', 6, 6, 'it is right.', 'Tow', 'Mater', 2),
+(58, '2017-10-14 04:42:11', 5, 5, 'it is right.', 'Tow', 'Mater', 4);
 
 -- --------------------------------------------------------
 
@@ -157,7 +158,7 @@ ALTER TABLE `Channel`
 -- AUTO_INCREMENT for table `Post`
 --
 ALTER TABLE `Post`
-  MODIFY `post_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=56;
+  MODIFY `post_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=59;
 --
 -- AUTO_INCREMENT for table `Reaction`
 --
