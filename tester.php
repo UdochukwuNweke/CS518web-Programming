@@ -6,16 +6,14 @@
 	include('DB.php');
 
 
-	/*
 	//LOGIN
 	$email ='mater@rsprings.gov';
 	$pass = '@mater';
 	$isLoggedIn = login($email, $pass);
 	var_dump($isLoggedIn);
-	*/
 	
 	
-	
+	/*
 	//POST
 	$channel_id = 5;
 	$parent_id = 5;
@@ -26,6 +24,7 @@
 
 	$numRows = post($channel_id, $parent_id, $content, $fname, $lname, $user_id);
 	echo 'posted items:' . $numRows;
+	*/
 	
 
 	
