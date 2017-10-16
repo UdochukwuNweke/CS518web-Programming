@@ -20,7 +20,9 @@ SET time_zone = "+00:00";
 -- Database: `CS518DB`
 --
 
-CREATE DATABASE CS518DB;
+CREATE DATABASE /*!32312 IF NOT EXISTS*/ `CS518DB` /*!40100 DEFAULT CHARACTER SET latin1 */;
+
+USE `CS518DB`;
 
 -- --------------------------------------------------------
 
