@@ -1,44 +1,41 @@
 <?php
-	ini_set('display_errors', 1);
-	ini_set('display_startup_errors', 1);
-	error_reporting(E_ALL);
 
-	include('DB.php');
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
-	phpinfo();
-
-	//LOGIN
-	$email ='mater@rsprings.gov';
-	$pass = '@mater';
-	$isLoggedIn = login($email, $pass);
-	var_dump($isLoggedIn);
-	
-	
-	/*
-	//POST
-	$channel_id = 5;
-	$parent_id = 5;
-	$content = 'it is right.';
-	$fname= 'Tow';
-	$lname = 'Mater';
-	$user_id = 4;
-
-	$numRows = post($channel_id, $parent_id, $content, $fname, $lname, $user_id);
-	echo 'posted items:' . $numRows;
-	*/
-	
-
-	
-	/*
-	//DELETE POST
-	$post_id = 54;
-	$user_id = 12;
-	$numRows = deletePost($post_id, $user_id);
-	echo 'deleted items:' . $numRows;
-	*/
-	
+include('services.php');
 
 
 
+$email = 'mater@rsprings.gov';
+$password = '@mater';
+var_dump( login($email, $password) );
+
+
+
+/*
+$user_id = 2;
+$fname = 'Sally';
+$lname = 'Carrera';
+$channel_id = 1;
+$parent_id = 1;
+$content = 'reply to hello db';
+post($user_id, $fname, $lname, $channel_id, $parent_id, $content)
+*/
+
+
+/*
+$post_id = 10;
+$user_id = 1;
+if( deletePost($post_id, $user_id) )
+{
+	echo 'Yes';
+}
+else
+{
+	echo 'No';
+}
+*/
 
 ?>

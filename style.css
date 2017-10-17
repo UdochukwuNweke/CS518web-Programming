@@ -1,0 +1,50 @@
+body 
+{
+	  margin:0;
+	  font-family: Perpetua, Baskerville, "Big Caslon", "Palatino Linotype", Palatino, "URW Palladio L", "Nimbus Roman No9 L", serif; font-size: 16px;
+	  /*height:100%;*/
+	  /*overflow:hidden;*/
+      background-color: #EEE;
+}
+
+.leftmenu
+{ 
+	padding: 10px 0px 0px 10px;
+
+	background: #373E40;
+	color:#fff;
+	
+	width: 15%; 
+	height: 100%;
+
+	overflow: hidden;
+	float: left;
+}
+
+.main
+{
+	width: 50%;
+	height: 100%;
+	padding: 0px 0px 0px 20px;
+	float: left;
+}
+
+#infoArea 
+{
+    background-color: white;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #999999;
+    margin:0 auto;
+
+    padding: 10px 10px 10px 10px;
+}
+
+.msgArea
+{
+	padding: 10px 0px 0px 10px;
+	width: 80%; 
+	background-color: #EEE; 
+	border-style: solid; 
+	border-width: 1px;
+}

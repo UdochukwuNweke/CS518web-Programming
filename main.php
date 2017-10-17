@@ -5,23 +5,24 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-include('DB.php');
+include('services.php');
 
-
+//unset( $_SESSION['authenticationFlag'] );
 authenticateUser();
+parsePost();
 
-
+//http://www.cs.odu.edu/~jbrunelle/cs518/assignments/milestone1.html
 // credit to: http://www.phpsnips.com/4/Simple-User-Login#.VpkiUlMrKRt
 function authenticateUser()
 {
 	if( isset($_SESSION['authenticationFlag']) === false )
 	{
-		$fnameLname = login( $_POST['email'], $_POST['password'] );
+		$userDetails = login( $_POST['email'], $_POST['password'] );
 
 		if( 
 			isset($_POST["email"]) === false || 
 			isset($_POST["password"]) === false ||
-			count( $fnameLname ) === 0
+			count( $userDetails ) === 0
 		  )
 		{
 			header('Location: index.php');
@@ -29,8 +30,53 @@ function authenticateUser()
 		}
 		else
 		{
-			$_SESSION['authenticationFlag'] = $fnameLname;
+			$_SESSION['authenticationFlag'] = $userDetails;
 		}
+	}
+}
+
+function parsePost()
+{
+	if( isset($_POST) === false )
+	{
+		return;
+	}
+
+	//var_dump( $_POST );
+
+	$user_id = $_SESSION['authenticationFlag']['user_id'];
+	if( isset($_POST['post']) )
+	{
+		//post at a channel
+		$fname = $_SESSION['authenticationFlag']['fname'];
+		$lname = $_SESSION['authenticationFlag']['lname'];
+		$channel_id = $_POST['channel_id'];
+
+		$parent_id = -1;#reply not implemented
+
+		$content = trim($_POST['post']);
+		if( strlen($content) !== 0 )
+		{
+			post($user_id, $fname, $lname, $channel_id, $parent_id, $content);
+		}
+	}
+	elseif( isset($_POST['delete']) ) 
+	{
+		//delete
+		$post_id = $_POST['post_id'];
+		deletePost($post_id, $user_id);
+	}
+}
+
+function getCurChannel()
+{
+	if( isset($_POST['channel_id']) )
+	{
+		return $_POST['channel_id'];
+	}
+	else
+	{
+		return 1;
 	}
 }
 
@@ -38,51 +84,7 @@ function authenticateUser()
 
 <html>
 <head>
-	<style type="text/css">
-		
-		body 
-		{
-			  margin:0;
-			  font-family: Perpetua, Baskerville, "Big Caslon", "Palatino Linotype", Palatino, "URW Palladio L", "Nimbus Roman No9 L", serif; font-size: 16px;
-			  /*height:100%;*/
-			  /*overflow:hidden;*/
-		      background-color: #EEE;
-		}
-
-		.leftmenu
-		{ 
-			padding: 10px 0px 0px 10px;
-
-			background: #373E40;
-			color:#fff;
-			
-			width: 15%; 
-			height: 100%;
-
-			overflow: hidden;
-			float: left;
-        }
-
-        .main
-        {
-        	width: 50%;
-        	height: 100%;
-        	padding: 0px 0px 0px 20px;
-        	float: left;
-        }
-
-        #infoArea 
-        {
-		    background-color: white;
-		    border-style: solid;
-		    border-width: 1px;
-		    border-color: #999999;
-		    margin:0 auto;
-
-		    padding: 10px 10px 10px 10px;
-		}
-
-	</style>
+	<link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
 
@@ -91,7 +93,38 @@ Channels:
 <hr>
 
 
+<?php
+	$channels = genericGetAll('Channel', '');
 
+	if( count($channels) !== 0 )
+	{
+		//check a default channel
+		$defaultCheckedID = 1;
+		if( isset($_POST['channel_id']) )
+		{
+			$defaultCheckedID = $_POST['channel_id'];
+		}
+
+		echo '<form action="#" method="post">';
+		
+		for($i = 0; $i < count($channels); $i++)
+		{
+			$checkFlag = '';
+			if( $channels[$i]['channel_id'] == $defaultCheckedID )
+			{
+				//restore last check option due to page refresh
+				$checkFlag = 'checked';
+			}
+
+			echo '<input ' . $checkFlag . ' type="radio" name="channel_id" value="' . $channels[$i]['channel_id'] . '">#' . $channels[$i]['name'] . '<br>';
+		}
+		
+		echo '<br><input placeholder="Enter Message" type="text" name="post"><br><br>';
+		echo '<input type="submit" value="Submit/View Channel">';
+
+		echo '</form>';
+	}
+?>
 
 
 Direct Messages:
@@ -99,12 +132,13 @@ Direct Messages:
 </div>
 
 <div class="main">
+
 	<?php
 		if( isset($_SESSION['authenticationFlag']) )
 		{
 			if( count($_SESSION['authenticationFlag']) !== 0 )
 			{
-				echo '<h1>Welcome ' . $_SESSION['authenticationFlag']['fname'] . '!</h1>';
+				echo '<h1>Welcome ' . $_SESSION['authenticationFlag']['fname'] . ' ' . $_SESSION['authenticationFlag']['lname'] . '!</h1>';
 			}
 			else
 			{
@@ -116,6 +150,14 @@ Direct Messages:
 			echo '<h1>Welcome!</h1>';
 		}
 	?>
+	
+
+	<div id='infoArea'>
+	Posts:
+	<?php 
+		getMessages( getCurChannel(), $_SESSION['authenticationFlag']['user_id'] );
+	?>
+	</div>
 </div>
 
 

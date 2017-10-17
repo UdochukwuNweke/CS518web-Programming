@@ -2,13 +2,10 @@
 //http://www.elated.com/articles/mysql-for-absolute-beginners
 date_default_timezone_set('America/New_York');
 
-	$serverName = 'localhost';
-	#$userName = 'unweke';
-	#$password = 'gaccess123';
-
-	$dbUserName = 'admin';
-	$dbPassword = 'M0n@rch$';
-	$dbname = 'CS518DB';
+$serverName = 'localhost';
+$dbUserName = 'unweke';
+$dbPassword = 'M0n@rch$';
+$dbname = 'CS518DB';
 
 /*
 CS518 Tables
@@ -243,6 +240,52 @@ function genericGetAll($table, $optionalWhereClause='')
 	}
 
 	return $payload;
+}
+
+function getMsgDiv($post_id, $user_id, $fname, $lname, $datetime, $content, $auth_user_id)
+{
+	echo '<div class="msgArea">';
+	echo '<strong>' . $fname . ' ' . $lname . '</strong> (' . $datetime . ')' . '<br>';
+	echo $content . '<br><br>';
+	
+	echo '<form action="#" method="post">';
+	echo '<input type="submit" value="Reply" name="reply">';
+	if( $user_id === $auth_user_id )
+	{
+		echo '<input value="'. $post_id . '" type="hidden" name="post_id">';
+		echo '<input type="submit" value="Delete" name="delete">';
+	}
+
+	echo '</form>';
+
+	echo '</div>';
+}
+
+function getMessages($channel_id, $auth_user_id, $max=0)
+{
+	//echo 'To get msges for channel: ' . $channel_id . '<br><br>';
+	$posts = genericGetAll('Post', 'WHERE channel_id=' . $channel_id);
+	$index = 1;
+
+	for($i = count($posts)-1; $i !== -1 ; $i--)
+	{
+		getMsgDiv(
+			$posts[$i]['post_id'],
+			$posts[$i]['user_id'],
+			$posts[$i]['fname'],
+			$posts[$i]['lname'],
+			$posts[$i]['datetime'],
+			$posts[$i]['content'],
+			$auth_user_id
+		);
+
+		if( $index === $max )
+		{
+			break;
+		}
+
+		$index = $index + 1;
+	}
 }
 
 ?>
