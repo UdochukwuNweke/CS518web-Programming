@@ -255,7 +255,7 @@ function getMsgDiv($post_id, $user_id, $fname, $lname, $datetime, $content, $aut
 	
 	echo '<form action="#" method="post">';
 	echo '<input type="submit" value="Reply" name="reply">';
-	if( $user_id === $auth_user_id )
+	if( $user_id == $auth_user_id )
 	{
 		echo '<input value="'. $post_id . '" type="hidden" name="post_id">';
 		echo '<input type="submit" value="Delete" name="delete">';
