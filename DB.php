@@ -2,8 +2,11 @@
 	date_default_timezone_set('America/New_York');
 
 	$serverName = 'localhost';
-	$userName = 'unweke';
-	$password = 'gaccess123';
+	#$userName = 'unweke';
+	#$password = 'gaccess123';
+
+	$userName = 'admin';
+	$password = 'M0n@rch$';
 	$dbname = 'CS518DB';
 
 
