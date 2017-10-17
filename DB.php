@@ -6,8 +6,8 @@ date_default_timezone_set('America/New_York');
 	#$userName = 'unweke';
 	#$password = 'gaccess123';
 
-	$userName = 'admin';
-	$password = 'M0n@rch$';
+	$dbUserName = 'admin';
+	$dbPassword = 'M0n@rch$';
 	$dbname = 'CS518DB';
 
 /*
