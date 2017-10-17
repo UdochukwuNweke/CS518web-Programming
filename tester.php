@@ -5,6 +5,7 @@
 
 	include('DB.php');
 
+	phpinfo();
 
 	//LOGIN
 	$email ='mater@rsprings.gov';
