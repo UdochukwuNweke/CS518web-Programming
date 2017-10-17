@@ -32,10 +32,11 @@
 				$sqlQuery -> bind_param('ss', $email, $password);
 				$sqlQuery -> execute();
 
-				$result = $sqlQuery -> get_result();
-				if( $result -> num_rows !== 0 )
+				$sqlQuery -> bind_result($fname, $lname);
+				if( $sqlQuery -> fetch() )
 				{
-					$fnameLname = $result -> fetch_assoc();
+			        $fnameLname['fname'] = $fname;
+			        $fnameLname['lname'] = $lname;
 				}
 				
 				$sqlQuery -> close();
