@@ -32,9 +32,9 @@
 	<div id='infoArea'>
 		<?php
 			echo '<h3>General</h3>';
-			getMessages(1, 1, 3);
+			getMessages(1, 0, 3);
 			echo '<h3>Random</h3>';
-			getMessages(2, 1, 3);
+			getMessages(2, 0, 3);
 		 ?>
 	</div>
 
