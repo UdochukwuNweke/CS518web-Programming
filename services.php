@@ -231,7 +231,12 @@ function genericGetAll($table, $optionalWhereClause='')
 		$sqlQuery = 'SELECT * FROM ' . $table . ' ' . $optionalWhereClause;
 
 		$result = $conn -> query($sqlQuery);
-		$payload = mysqli_fetch_all ($result, MYSQLI_ASSOC);
+		while ($row = $result->fetch_assoc()) 
+		{
+		    array_push($payload, $row);
+		}
+
+		$result -> close();
 
 	}
 	catch(Exception $e) 
