@@ -1,10 +1,26 @@
+
+
 body 
 {
 	  margin:0;
-	  font-family: Perpetua, Baskerville, "Big Caslon", "Palatino Linotype", Palatino, "URW Palladio L", "Nimbus Roman No9 L", serif; font-size: 16px;
-	  /*height:100%;*/
-	  /*overflow:hidden;*/
+	  font-family: 'Poiret One', cursive;/*https://fonts.google.com/*/
+	  /*font-family: Perpetua, Baskerville, "Big Caslon", "Palatino Linotype", Palatino, "URW Palladio L", "Nimbus Roman No9 L", serif; font-size: 16px;*/
+	  
+	  /*remove scroll bar
+	  height:100%;
+	  overflow:hidden;*/
+
       background-color: #EEE;
+}
+
+hr.style13 {
+    height: 10px;
+    border: 0;
+    box-shadow: 0 10px 10px -10px #8c8b8b inset;
+}
+
+div{
+	border-radius: 5px;
 }
 
 .leftmenu
@@ -19,15 +35,31 @@ body
 
 	overflow: hidden;
 	float: left;
+
+	border-radius: 0px;
 }
 
 .main
 {
-	width: 50%;
+	width: 60%;
 	height: 100%;
 	padding: 0px 0px 0px 20px;
 	float: left;
 }
+
+/*
+.nextMain
+{
+	width: 20%;
+	height: 10%;
+	padding: 0px 0px 0px 20px;
+	float: left;
+
+	background-color: white;
+	border-style: solid;
+	border-width: 1px;
+}
+*/
 
 #infoArea 
 {
@@ -37,13 +69,18 @@ body
     border-color: #999999;
     margin:0 auto;
 
+    /*width: 100%; */
     padding: 10px 10px 10px 10px;
+    height: 70%; overflow:auto; /* https://stackoverflow.com/a/4646733 */
 }
 
 .msgArea
 {
+	/*align div center*/
+	width: 90%; margin: 0 auto; /*https://stackoverflow.com/a/114549*/
 	padding: 10px 0px 0px 10px;
-	width: 80%; 
+
+	border-color: #3B0029;
 	background-color: #EEE; 
 	border-style: solid; 
 	border-width: 1px;

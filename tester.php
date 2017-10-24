@@ -6,11 +6,24 @@ error_reporting(E_ALL);
 
 include('services.php');
 
+/*
+$reaction_type_id = 1;
+$post_id = 71;
+$user_id = 1;
+$fname = 'Tow';
+$lname = 'Mater';
+postReaction($reaction_type_id, $post_id, $user_id, $fname, $lname);
+*/
 
 
+//echo deleteReaction($reaction_id);
+
+
+/*
 $email = 'mater@rsprings.gov';
 $password = '@mater';
 var_dump( login($email, $password) );
+*/
 
 
 
