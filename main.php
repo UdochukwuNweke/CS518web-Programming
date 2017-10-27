@@ -14,31 +14,39 @@ parsePost();
 
 //http://www.cs.odu.edu/~jbrunelle/cs518/assignments/milestone1.html
 // credit to: http://www.phpsnips.com/4/Simple-User-Login#.VpkiUlMrKRt
-function validatePost()
-{
-	if( $_SERVER['REQUEST_METHOD'] == 'POST' ) 
-	{
-		foreach ($_POST as $key => $value) 
-		{
-			if( is_numeric($value) == false )
-			{
-				$_POST[$key] = sanitizeInput( $value );
-			}
-		}
-	}
-}
 
 function authenticateUser()
 {
 	if( isset($_SESSION['authenticationFlag']) === false )
 	{
-		$userDetails = login( $_POST['email'], $_POST['password'] );
+		$userDetails = array();
+		$shouldRedirectFlag = false;
 
-		if( 
-			isset($_POST["email"]) === false || 
-			isset($_POST["password"]) === false ||
-			count( $userDetails ) === 0
-		  )
+		if( isset($_POST["email"]) === false || isset($_POST["password"]) === false )
+		{
+			$_SESSION['index.php.msg'] = 'Please login';
+			$shouldRedirectFlag = true;
+		}
+		else
+		{
+			if( strlen(trim($_POST["email"])) === 0 || strlen(trim($_POST["password"])) === 0 )
+			{
+				$_SESSION['index.php.msg'] = 'Please login';
+				$shouldRedirectFlag = true;
+			}
+			else
+			{
+				$userDetails = login( $_POST['email'], $_POST['password'] );
+				if( count($userDetails) === 0 )
+				{
+					$_SESSION['index.php.msg'] = 'Incorrect email or password';
+					$shouldRedirectFlag = true;
+				}
+			}
+			
+		}
+
+		if( $shouldRedirectFlag === true )
 		{	
 			$newLocation = 'index.php';
 
@@ -50,14 +58,14 @@ function authenticateUser()
 					$newLocation = $newLocation . '&post=' . $_GET['post'];
 				}
 			}
-			
-			
+
 			header('Location: ' . $newLocation);
 			exit;
 		}
 		else
 		{
 			$_SESSION['authenticationFlag'] = $userDetails;
+			unset($_SESSION['index.php.msg']);
 		}
 	}
 }
@@ -69,7 +77,7 @@ function parsePost()
 		return;
 	}
 
-	//var_dump( $_POST );
+	var_dump( $_POST );
 
 	$user_id = $_SESSION['authenticationFlag']['user_id'];
 	$fname = $_SESSION['authenticationFlag']['fname'];
@@ -191,6 +199,32 @@ function getCurChannel()
 </head>
 <body style="margin: 0; height: 100%; overflow: hidden;">
 
+<div id="menuDiv" style="background-color: gray; padding: 10px 0px 10px 0px; border-radius: 0px;">
+	<table style="width: 100%;" align="center">
+		<tr>
+
+			<td width="20%" style="text-align:center;">
+				<a style="color: inherit; text-decoration: none;" href="main.php?channel=General">Home</a>
+			</td>
+
+			<td width="20%" style="text-align:center;">
+				<a style="color: inherit; text-decoration: none;" href="logout.php">Logout</a>
+			</td>
+
+			<td width="20%" style="text-align:center;">
+				<?php
+					echo '<a style="color: inherit; text-decoration: none;" href="./profile.php?user=' . $_SESSION['authenticationFlag']['user_id'] . '" >My Profile</a>';
+				?>
+			</td>
+
+			<td width="20%" style="text-align:center;">
+				<a style="color: inherit; text-decoration: none;" href="">Invite (NO OP)</a>
+			</td>
+
+		</tr>
+	</table>
+</div>
+
 <div class="leftmenu">
 Channels:
 <hr>
@@ -207,8 +241,9 @@ Channels:
 		{
 			//create key value pair with channel name as key and channel id as value
 			$_SESSION['channels'][$channels[$i]['name']] = $channels[$i]['channel_id'];
-			echo '<a style="color: inherit;" href="?channel=' . $channels[$i]['name'] . '"> #' . $channels[$i]['name'] . '</a> <br>';
+			echo '<a style="color: inherit; text-decoration: none;" href="?channel=' . $channels[$i]['name'] . '"> # ' . $channels[$i]['name'] . '</a> <br>';
 		}
+		echo '<a style="color: inherit; text-decoration: none;" href="./newchannel.php"> + New Channel</a> <br>';
 		echo '<br>';
 	}
 ?>
@@ -218,29 +253,8 @@ Direct Messages:
 <hr>
 </div>
 
-<div class="pure-g">
-	
-	<div class="pure-u-1-5">
-    	<a href="main.php?channel=General">Home</a>
-    </div>
-
-    <div class="pure-u-1-5">
-    	<a href="logout.php">Logout</a>
-    </div>
-    
-    <div class="pure-u-1-5">
-    	<a href="">New Channel (NO OP)</a>
-    </div>
-    <div class="pure-u-1-5">
-    	<a href="">My Profile (NO OP)</a>
-    </div>
-    <div class="pure-u-1-5">
-    	<a href="">Invite (NO OP)</a>
-    </div>
-</div>
 
 <br>
-
 <div class="main">	
 	<?php
 		echo '<div id="infoArea">';

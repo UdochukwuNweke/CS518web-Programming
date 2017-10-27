@@ -55,6 +55,20 @@ function sanitizeInput($data)
 	return $data;
 }
 
+function validatePost()
+{
+	if( $_SERVER['REQUEST_METHOD'] == 'POST' ) 
+	{
+		foreach ($_POST as $key => $value) 
+		{
+			if( is_numeric($value) == false )
+			{
+				$_POST[$key] = sanitizeInput( $value );
+			}
+		}
+	}
+}
+
 /*
  * Responsible for login action: Check if user supplied email/password pair is in DB
  *
@@ -273,6 +287,50 @@ function postReaction($reaction_type_id, $post_id, $user_id, $fname, $lname)
 				$lname
 			);
 
+
+			$sqlQuery -> execute();
+			if( $conn -> affected_rows !== 0 )
+			{
+				$hasRows = true;
+			}
+
+			$sqlQuery -> close();
+			$conn -> close();
+		}
+	}
+	catch(Exception $e) 
+	{
+		echo 'Message: ' . $e -> getMessage();
+	}
+
+	return $hasRows;
+}
+
+function register($fname, $lname, $email, $password)
+{
+	
+	$hasRows = false;
+
+	try
+	{
+		$conn = new mysqli($GLOBALS['serverName'], $GLOBALS['dbUserName'], $GLOBALS['dbPassword'], $GLOBALS['dbname']);
+
+		// Check connection
+		if( $conn -> connect_error ) 
+		{
+			// consider logging error
+			echo 'Connection failed: ' . $conn -> connect_error;
+		} 
+		else
+		{
+			$sqlQuery = $conn -> prepare('INSERT INTO  User (fname, lname, email, password) VALUES (?, ?, ?, ?)');
+			$sqlQuery -> bind_param(
+				'ssss', 
+				$fname,
+				$lname,
+				$email, 
+				$password
+			);
 
 			$sqlQuery -> execute();
 			if( $conn -> affected_rows !== 0 )

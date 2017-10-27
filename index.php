@@ -2,7 +2,6 @@
 	include('services.php');
 	session_start();
 
-	
 	if( isset($_SESSION['authenticationFlag']) === true )
 	{
 		header('Location: main.php?channel=General');
@@ -21,7 +20,7 @@
 
 <body>
 
-	<div style="width: 200px; height: 100px; margin: 20 auto; text-align:center; font-size: 40px; color: #3B0029;">
+	<div style="text-align:center; font-size: 40px; color: #3B0029;">
 		<strong>ODU CS Slack</strong>
 	</div>
 
@@ -37,6 +36,13 @@
 	    <td align="center">
 	    	<div style="padding: 10px 0px 0px 10px; width:80%; height: 20%;">
 				<h3> Login </h3>
+
+				<?php 
+					if( isset($_SESSION['index.php.msg']) )
+					{
+						echo '<strong><p style="color: red">' . $_SESSION['index.php.msg'] . '</p></strong>';
+					}
+				?>
 				
 				<form id='loginForm' class="pure-form pure-form-aligned" action="" method="post">
 				    <fieldset>
@@ -60,21 +66,36 @@
 	    <td align="center">
 	    	<div style="padding: 10px 0px 0px 10px;width: 80%; height: 20%;">
 				<h3> Register </h3>
-				<form class="pure-form" action="main.php" method="post">
+				
+				<?php 
+					if( isset($_SESSION['register.php.msg']) )
+					{
+						if( $_SESSION['register.php.msg'] == 'go' )
+						{
+							unset( $_SESSION['register.php.msg'] );
+							echo '<strong><p style="color: green">Registration successful, please login.</p></strong>';
+						}
+						else
+						{
+							echo '<strong><p style="color: red">' . $_SESSION['register.php.msg'] . '</p></strong>';
+						}
+					}
+				?>
+
+				<form class="pure-form" action="register.php" method="post">
 
 				 	<fieldset>
-            			<input type="text" placeholder="First name">
-            			<input type="text" placeholder="Last name">
+            			<input type="text" placeholder="First name" name="First-name">
+            			<input type="text" placeholder="Last name" name="Last-name">
 					</fieldset>	
 
 				    <fieldset>
-				        
-				        <input type="password" placeholder="Password">
-				        <input type="password" placeholder="Re-type password">
+				        <input type="password" placeholder="Password" name="Password">
+				        <input type="password" placeholder="Re-type password" name="Re-Password">
 				    </fieldset>
 
 				    <fieldset>
-				    	<input type="email" placeholder="Email">
+				    	<input type="email" placeholder="Email" name="Email">
 				    	<button type="submit" class="pure-button pure-button-primary">Register</button>
 					</fieldset>
 				   
