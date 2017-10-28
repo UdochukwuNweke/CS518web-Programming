@@ -451,7 +451,17 @@ function getMsgDiv($post_id, $user_id, $fname, $lname, $datetime, $content, $par
 
 
 	echo '<div class="msgArea" id="post-' . $post_id . '">';
-	echo '<img src="https://www.w3schools.com/tags/smiley.gif" alt="Smiley face" width="50" height="50" style="float: left; border-radius: 5px;">';
+	
+	$avatar = './profileImgs/' . $user_id . '.jpg';
+	if( file_exists($avatar) )
+	{
+		echo '<img src="'. $avatar .'" alt="avatar" class="avatar">';	
+	}
+	else
+	{
+		echo '<img src="https://www.w3schools.com/tags/smiley.gif" alt="avatar" class="avatar">';
+	}
+
 	echo '<strong>' . $fname . '<br>' . $lname . ' - ' . $post_id . ' </strong> <br>(' . $datetime . ')<br><br>';
 	
 	echo $content . '<br><br>';
