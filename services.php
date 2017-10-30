@@ -427,7 +427,12 @@ function register($fname, $lname, $email, $password)
 			$sqlQuery -> execute();
 			if( $conn -> affected_rows !== 0 )
 			{
-				$hasRows = true;
+				$user_id = $conn -> insert_id;
+				//add new membership for new user to default channels
+				if( setChannelMembership(1, $user_id) && setChannelMembership(2, $user_id) )
+				{
+					$hasRows = true;
+				}
 			}
 
 			$sqlQuery -> close();

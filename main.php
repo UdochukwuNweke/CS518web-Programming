@@ -450,6 +450,8 @@ Direct Messages:
 		var uriParams = processURL();
 
 		console.log('\nreplyCounterClick(), params:', uriParams);
+
+		/*
 		if( uriParams.post == undefined )
 		{
 			window.location.href += '&' + post_id;
@@ -457,7 +459,7 @@ Direct Messages:
 		else
 		{
 			window.location.href = window.location.href.replace('post=' + uriParams.post, post_id);
-		}
+		}*/
 	}
 
 	/*https://stackoverflow.com/a/979996*/
