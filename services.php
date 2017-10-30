@@ -217,6 +217,15 @@ function post($user_id, $fname, $lname, $channel_id, $parent_id, $content)
 				$hasRows = true;
 			}
 
+			//add membership if user is not already a member of channel - start
+			//consider moving to main.php
+			$memb = genericGetAll('Channel_Membership', 'WHERE user_id=' . $user_id . ' AND channel_id=' . $channel_id);
+			if( count($memb) == 0 )
+			{
+				setChannelMembership($channel_id, $user_id);
+			}
+			//add membership if user is not already a member of channel - end
+
 			$sqlQuery -> close();
 			$conn -> close();
 		}

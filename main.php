@@ -162,7 +162,7 @@ function getCurChannel()
 
 	if( isset($_GET['channel']) && isset($_SESSION['channels']) )
 	{
-		$channel = getChannelsOfType($_SESSION['channels'], $_GET['channel'], 'name');
+		$channel = genericGetFromArr($_SESSION['channels'], $_GET['channel'], 'name');
 
 		if( count($channel) != 0 )
 		{
@@ -187,7 +187,7 @@ function getCurChannel()
 	return $channelInfo;
 }
 
-function getChannelsOfType($allChannels, $key, $type='channel_id')
+function genericGetFromArr($allChannels, $key, $type='channel_id')
 {
 	
 	for($i = 0; $i < count($allChannels); $i++)
@@ -222,7 +222,7 @@ function getChannelPartitions($allChannels, $memberChannels)
 	$skipChannels = array();
 	for($i = 0; $i < count($memberChannels); $i++)
 	{
-		$channel = getChannelsOfType($allChannels, $memberChannels[$i]['channel_id'], 'channel_id');
+		$channel = genericGetFromArr($allChannels, $memberChannels[$i]['channel_id'], 'channel_id');
 		if( count($channel) != 0 )
 		{
 			array_push($skipChannels, $channel['channel_id']);
@@ -338,7 +338,7 @@ Channels:
 	
 		if( count($channelPartition['pub-non-memb']) != 0 )
 		{
-			echo '<li>Subscribe to channels:</li>';
+			echo '<br><li>Post to Subscribe to these channels:</li>';
 			echo '<ul style="list-style-type:none;">';
 				for( $i = 0; $i<count($channelPartition['pub-non-memb']); $i++ )
 				{
@@ -404,7 +404,7 @@ Direct Messages:
 			}
 			else if( isset($_GET['user']) )
 			{
-				$user = getChannelsOfType($users, $_GET['user'], $type='user_id');
+				$user = genericGetFromArr($users, $_GET['user'], $type='user_id');
 
 				echo '<h3>' 
 				. $_SESSION['authenticationFlag']['fname'] 
