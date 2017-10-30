@@ -7,7 +7,12 @@
 		header('Location: index.php');
 		exit;
 	}
-	// for channel implementation after observing how the 'real salck' works I decided to copy them.
+
+	if( isset($_GET['user']) == false )
+	{
+		header('Location: profile.php?user=' . $_SESSION['authenticationFlag']['user_id'] );
+	}
+	//Borrowed from 'the real' slack application
 	//for public channel membership can be acquired by:
 	//a. clicking join
 	//b. by invitation
@@ -28,7 +33,7 @@
 		} 
 		elseif($_FILES['mkfile']['error'])
 		{
-			$_SESSION['profile.php.msg'] = 'Error ' . $_FILES['mkfile']['error'];
+			$_SESSION['profile.php.msg'] = 'Error ' . $_FILES['mkfile']['error'] . '. Make sure file size is under 1MB.';
 		} 
 		else 
 		{
@@ -71,10 +76,16 @@
 	    <td align="center">
 	    	<div style="padding: 10px 0px 0px 10px; width:80%; height: 20%;">
 
+	    		<h3> Profile Image </h3>
 				<?php
 					$avatar = './profileImgs/' . $_SESSION['authenticationFlag']['user_id'] . '.jpg';
 					if( file_exists($avatar) )
 					{
+						/*
+							echo '<div class="avatar" style="width: 200px; height: 200px;">';
+								echo '<img src="'. $avatar .'" alt="avatar" style="border-radius: 4px; max-width: 100%; max-height: 100%; margin: 0 auto;">';
+							echo '</div>';
+						*/
 						echo '<img src="'. $avatar .'" alt="avatar" class="avatar" style="width: 200px; height: 200px;">';	
 					}
 					else
@@ -114,8 +125,43 @@
 
 			</div>
 	    </td> 
-	    
+
 	  </tr>
+
+	  <tr>
+	  	<td align="center">
+	  		
+	  		<div style="padding: 10px 0px 0px 10px; width:80%; height: 20%;">
+	  			
+	  			<h3>Public Channel Membership</h3>
+	  			<ol>
+		  			<?php 
+		  				for($i = 0; $i<count($_SESSION['channels']); $i++)
+		  				{
+		  					if( $_SESSION['channels'][$i]['type'] == 'PUBLIC' )
+		  					{
+		  						echo '<li>' . getHTMLForChannel($_SESSION['channels'][$i]) . '</li>';
+		  					}
+		  				}
+		  			?>
+				</ol>
+
+	  		</div>
+
+	  	</td>
+
+
+	  	<td align="center">
+	  		<div style="padding: 10px 0px 0px 10px; width:80%; height: 20%;">
+			
+			<input type="checkbox" name="twoFA">
+	  		Two-Factor Authentication
+
+			</div>
+	  	</td>
+
+	  </tr>
+
 	</table>
 
 

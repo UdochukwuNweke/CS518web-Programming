@@ -7,12 +7,11 @@ error_reporting(E_ALL);
 
 include('services.php');
 
-
 validatePost();
 authenticateUser();
 parsePost();
 
-//http://www.cs.odu.edu/~jbrunelle/cs518/assignments/milestone1.html
+// http://www.cs.odu.edu/~jbrunelle/cs518/assignments/milestone1.html
 // credit to: http://www.phpsnips.com/4/Simple-User-Login#.VpkiUlMrKRt
 
 function authenticateUser()
@@ -159,15 +158,21 @@ function focusOnPost($post_id)
 function getCurChannel()
 {
 	//attempt to extract channel id from session channel dict using channel supplied from url param
-	$channelInfo = array('channelName' => 'General', 'channelId' =>  1, 'post' => -1);
+	$channelInfo = array('channelName' => 'general', 'channelId' =>  1, 'post' => -1);
 
 	if( isset($_GET['channel']) && isset($_SESSION['channels']) )
 	{
-		$urlChannel = $_GET['channel'];
-		if( isset($_SESSION['channels'][$urlChannel]) )
+		$channel = getChannelsOfType($_SESSION['channels'], $_GET['channel'], 'name');
+
+		if( count($channel) != 0 )
 		{
-			$channelInfo['channelName'] = $urlChannel;
-			$channelInfo['channelId'] = $_SESSION['channels'][$urlChannel];
+			$channelInfo['channelName'] = $channel['name'];
+			$channelInfo['channelId'] = $channel['channel_id'];
+		}
+		else
+		{
+			//bad channel address, set default
+			header('Location: main.php?channel=general');
 		}
 	}
 
@@ -179,14 +184,106 @@ function getCurChannel()
 		}
 	}
 	
-	/*
-	if( isset($_POST['channel_id']) )
-	{
-		return $_POST['channel_id'];
-	}*/
-	
-	
 	return $channelInfo;
+}
+
+function getChannelsOfType($allChannels, $key, $type='channel_id')
+{
+	
+	for($i = 0; $i < count($allChannels); $i++)
+	{
+		if( isset($allChannels[$i][$type]) )
+		{
+			if( $allChannels[$i][$type] == $key )
+				return $allChannels[$i];
+		}
+	}
+
+	return array();
+}
+
+function getChannelPartitions($allChannels, $memberChannels)
+{
+	/*	
+		Create channel partitions borrowed from the 'real' slack:
+		1. public channels user is a member of -- display in channel panel/profiles
+		2. private channels user is a member of -- display in channel panel with lock sign logo
+		2. public channels user is NOT a member -- display in browse
+	*/
+
+	$channelPartition = array();
+	$channelPartition['pub-memb'] = array();
+	$channelPartition['priv-memb'] = array();
+	$channelPartition['pub-non-memb'] = array();
+
+	if( count($allChannels) == 0 || count($memberChannels) == 0 )
+		return $channelPartition;
+	
+	$skipChannels = array();
+	for($i = 0; $i < count($memberChannels); $i++)
+	{
+		$channel = getChannelsOfType($allChannels, $memberChannels[$i]['channel_id'], 'channel_id');
+		if( count($channel) != 0 )
+		{
+			array_push($skipChannels, $channel['channel_id']);
+
+			if( $channel['type'] == 'PUBLIC' )
+			{
+				array_push($channelPartition['pub-memb'], $channel);
+			}
+			else
+			{
+				array_push($channelPartition['priv-memb'], $channel);
+			}
+		}
+	}
+
+	for($i = 0; $i < count($allChannels); $i++)
+	{
+		if( $allChannels[$i]['type'] == 'PUBLIC' )
+		{
+			if( in_array($allChannels[$i]['channel_id'], $skipChannels) == false )
+			{
+				array_push($channelPartition['pub-non-memb'], $allChannels[$i]);
+			}
+		}
+	}
+
+	return $channelPartition;
+}
+
+function printChannelMsg($channelInfo, $msgExtraParams)
+{
+	$threadFlag = '';
+	if( $channelInfo['post'] != -1 )
+	{
+		$threadFlag = ' (Replies to post: ' . $channelInfo['post'] . ')';
+	}
+
+	echo '<h3>' . $_SESSION['authenticationFlag']['fname'] . ' ' . $_SESSION['authenticationFlag']['lname'] . ' @ ' . $channelInfo['channelName'] . $threadFlag . '</h3>';
+
+	if( $channelInfo['post'] != -1 )
+	{
+		//extract parent message which was clicked
+		$msgExtraParams['max'] = 1;
+		getSingleMessage(
+			$channelInfo['post'], 
+			$channelInfo['channelId'], 
+			$_SESSION['authenticationFlag']['user_id'], 
+			$msgExtraParams
+		);
+	}
+
+	echo '<br><br>';
+	echo '<hr class="style13">';
+
+	$msgExtraParams['max'] = 0;
+	getMessages( 
+		$channelInfo['channelId'], 
+		$_SESSION['authenticationFlag']['user_id'],
+		$channelInfo['post'],
+		$msgExtraParams
+	);
 }
 
 ?>
@@ -204,7 +301,7 @@ function getCurChannel()
 		<tr>
 
 			<td width="20%" style="text-align:center;">
-				<a style="color: inherit; text-decoration: none;" href="main.php?channel=General">Home</a>
+				<a style="color: inherit; text-decoration: none;" href="main.php?channel=general">Home</a>
 			</td>
 
 			<td width="20%" style="text-align:center;">
@@ -215,10 +312,6 @@ function getCurChannel()
 				<?php
 					echo '<a style="color: inherit; text-decoration: none;" href="./profile.php?user=' . $_SESSION['authenticationFlag']['user_id'] . '" >My Profile</a>';
 				?>
-			</td>
-
-			<td width="20%" style="text-align:center;">
-				<a style="color: inherit; text-decoration: none;" href="">Invite (NO OP)</a>
 			</td>
 
 		</tr>
@@ -232,69 +325,100 @@ Channels:
 
 <?php
 	$channels = genericGetAll('Channel', '');
-	$_SESSION['channels'] = array();
+	$memberChannels = genericGetAll('Channel_Membership', 'WHERE user_id=' . $_SESSION['authenticationFlag']['user_id']);
+	$channelPartition = getChannelPartitions($channels, $memberChannels);
 
-	if( count($channels) !== 0 )
-	{
-		echo '<br>';
-		for($i = 0; $i < count($channels); $i++)
+	$channels = array_merge( $channelPartition['pub-memb'], $channelPartition['priv-memb'] );
+	echo '<ul style="list-style-type:none;">';//credit: https://stackoverflow.com/a/9709788
+		echo '<li><a style="color: inherit; text-decoration: none;" href="./new.php"> + New Channel/Invite</a></li>';
+		for( $i = 0; $i<count($channels); $i++ )
 		{
-			//create key value pair with channel name as key and channel id as value
-			$_SESSION['channels'][$channels[$i]['name']] = $channels[$i]['channel_id'];
-			echo '<a style="color: inherit; text-decoration: none;" href="?channel=' . $channels[$i]['name'] . '"> # ' . $channels[$i]['name'] . '</a> <br>';
+			echo '<li>' . getHTMLForChannel( $channels[$i] ) . '</li>';
 		}
-		echo '<a style="color: inherit; text-decoration: none;" href="./newchannel.php"> + New Channel</a> <br>';
-		echo '<br>';
-	}
+	
+		if( count($channelPartition['pub-non-memb']) != 0 )
+		{
+			echo '<li>Subscribe to channels:</li>';
+			echo '<ul style="list-style-type:none;">';
+				for( $i = 0; $i<count($channelPartition['pub-non-memb']); $i++ )
+				{
+					echo '<li>' . getHTMLForChannel( $channelPartition['pub-non-memb'][$i] ) . '</li>';
+				}
+			echo '</ul>';
+		}
+	echo '</ul>';
+
+	$_SESSION['channels'] = array_merge($channels, $channelPartition['pub-non-memb']);
+
+	/*
+		//Delete post testing all aspects of channel visibility
+		if( count($channels) !== 0 )
+		{
+			echo '<br>';
+			for($i = 0; $i < count($channels); $i++)
+			{
+				//create key value pair with channel name as key and channel id as value
+				$_SESSION['channels'][$channels[$i]['name']] = $channels[$i]['channel_id'];
+				echo '<a style="color: inherit; text-decoration: none;" href="?channel=' . $channels[$i]['name'] . '"> # ' . $channels[$i]['name'] . '</a> <br>';
+			}
+			echo '<a style="color: inherit; text-decoration: none;" href="./new.php"> + New Channel</a> <br>';
+			echo '<br>';
+		}
+	*/
 ?>
 
 
 Direct Messages:
 <hr>
+
+<?php
+	$users = genericGetAll('User', 'WHERE user_id!=' . $_SESSION['authenticationFlag']['user_id']);
+	$_SESSION['users'] = $users;
+
+	echo '<ul style="list-style-type:none;">';//credit: https://stackoverflow.com/a/9709788
+	for($i = 0; $i<count($users); $i++)
+	{
+		echo '<li>' . getHTMLForUser( $users[$i] ) . '</li>';
+	}
+	echo '</ul>';
+?>
+
 </div>
 
 
 <br>
 <div class="main">	
+	
 	<?php
 		echo '<div id="infoArea">';
 			
-			$msgExtraParams = array();
 			$channelInfo = getCurChannel();
 			$reactionTypes = genericGetAll('Reaction_Type');
+
+			$msgExtraParams = array();
 			$msgExtraParams['reactionTypes'] = $reactionTypes;
 
-
-			$threadFlag = '';
-			if( $channelInfo['post'] != -1 )
+			if( isset($_GET['channel']) )
 			{
-				$threadFlag = ' (Replies to post: ' . $channelInfo['post'] . ')';
+				printChannelMsg($channelInfo, $msgExtraParams);
 			}
-
-			echo '<h3>' . $_SESSION['authenticationFlag']['fname'] . ' ' . $_SESSION['authenticationFlag']['lname'] . ' @ ' . $channelInfo['channelName'] . $threadFlag . '</h3>';
-
-			if( $channelInfo['post'] != -1 )
+			else if( isset($_GET['user']) )
 			{
-				//extract parent message which was clicked
-				$msgExtraParams['max'] = 1;
-				getSingleMessage(
-					$channelInfo['post'], 
-					$channelInfo['channelId'], 
-					$_SESSION['authenticationFlag']['user_id'], 
-					$msgExtraParams
-				);
+				$user = getChannelsOfType($users, $_GET['user'], $type='user_id');
+
+				echo '<h3>' 
+				. $_SESSION['authenticationFlag']['fname'] 
+				. ' ' 
+				. $_SESSION['authenticationFlag']['lname'] 
+				. ' and ' 
+				. $user['fname'] . ' ' . $user['lname']
+				. ' (direct messages)'
+				. '</h3>';
+				
+				echo '<br><br>';
+				echo '<hr class="style13">';
 			}
-
-			echo '<br><br>';
-			echo '<hr class="style13">';
-
-			$msgExtraParams['max'] = 0;
-			getMessages( 
-				$channelInfo['channelId'], 
-				$_SESSION['authenticationFlag']['user_id'],
-				$channelInfo['post'],
-				$msgExtraParams
-			);
+		
 		echo '</div>';
 
 		echo '<form class="pure-form" action="main.php?channel=' . $channelInfo['channelName'] . '" method="post">';

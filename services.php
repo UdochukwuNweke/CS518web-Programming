@@ -306,6 +306,89 @@ function postReaction($reaction_type_id, $post_id, $user_id, $fname, $lname)
 	return $hasRows;
 }
 
+function setChannelMembership($channel_id, $user_id)
+{
+	$hasRows = false;
+
+	try
+	{
+		$conn = new mysqli($GLOBALS['serverName'], $GLOBALS['dbUserName'], $GLOBALS['dbPassword'], $GLOBALS['dbname']);
+
+		// Check connection
+		if( $conn -> connect_error ) 
+		{
+			// consider logging error
+			echo 'Connection failed: ' . $conn -> connect_error;
+		} 
+		else
+		{
+			$sqlQuery = $conn -> prepare('INSERT INTO  Channel_Membership (channel_id, user_id) VALUES (?, ?)');
+			$sqlQuery -> bind_param(
+				'ii', 
+				$channel_id,
+				$user_id
+			);
+
+			$sqlQuery -> execute();
+			if( $conn -> affected_rows !== 0 )
+			{
+				$hasRows = true;
+			}
+		}
+	}
+	catch(Exception $e) 
+	{
+		echo 'Message: ' . $e -> getMessage();
+	}
+
+	return $hasRows;
+}
+
+function addChannel($name, $purpose, $type, $creator_id)
+{
+	$hasRows = false;
+
+	try
+	{
+		$conn = new mysqli($GLOBALS['serverName'], $GLOBALS['dbUserName'], $GLOBALS['dbPassword'], $GLOBALS['dbname']);
+
+		// Check connection
+		if( $conn -> connect_error ) 
+		{
+			// consider logging error
+			echo 'Connection failed: ' . $conn -> connect_error;
+		} 
+		else
+		{
+			$sqlQuery = $conn -> prepare('INSERT INTO  Channel (name, purpose, type, creator_id) VALUES (?, ?, ?, ?)');
+			$sqlQuery -> bind_param(
+				'sssi', 
+				$name,
+				$purpose,
+				$type, 
+				$creator_id
+			);
+
+			$sqlQuery -> execute();
+			if( $conn -> affected_rows !== 0 )
+			{
+				$channel_id = $conn -> insert_id;
+				//add new membership for creator of channel
+				if( setChannelMembership($channel_id, $creator_id) )
+				{
+					$hasRows = true;
+				}
+			}
+		}
+	}
+	catch(Exception $e) 
+	{
+		echo 'Message: ' . $e -> getMessage();
+	}
+
+	return $hasRows;
+}
+
 function register($fname, $lname, $email, $password)
 {
 	
@@ -560,6 +643,45 @@ function getMessages($channel_id, $auth_user_id, $parent_id=-1, $msgExtraParams=
 	//echo 'To get msges for channel: ' . $channel_id . '<br><br>';
 	$posts = genericGetAll('Post', 'WHERE channel_id=' . $channel_id  .' AND ' . 'parent_id=' . $parent_id);
 	getHTMLForMessages($posts, $channel_id, $auth_user_id, $max, $msgExtraParams);
+}
+
+function getHTMLForChannel($channel)
+{
+	$privateFlag = '';
+	if( $channel['type'] == 'PRIVATE' )
+	{
+		$privateFlag = '&#128274;';
+	}
+
+	$html = '<a style="color: inherit; text-decoration: none;" href="main.php?channel=' 
+		. $channel['name'] 
+		. '"> # ' 
+		. $privateFlag . $channel['name'] 
+		. '</a> <br>';
+
+	return $html;
+}
+
+function getHTMLForUser($user)
+{
+	$onlineFlag = '';
+	if( strlen($user['fname']) > 4  )
+	{
+		//online not implemented
+		$onlineFlag = '&#128309;';
+	}
+	else
+	{
+		$onlineFlag = '&#9711;';
+	}
+
+	$html = '<a style="color: inherit; text-decoration: none;" href="main.php?user=' 
+		. $user['user_id'] 
+		. '">' 
+		. $onlineFlag . ' ' . $user['fname'] . ' ' . $user['lname']
+		. '</a> <br>';
+
+	return $html;
 }
 
 ?>

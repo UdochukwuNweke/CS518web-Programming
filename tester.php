@@ -7,6 +7,21 @@ error_reporting(E_ALL);
 include('services.php');
 
 /*
+$user_id = -1;
+$channel_id = 2;
+
+if( setChannelMembership($channel_id, $user_id) )
+{
+	echo 'Good';
+}
+else
+{
+	echo 'Bad';
+}
+*/
+
+	
+/*
 $reaction_type_id = 1;
 $post_id = 71;
 $user_id = 1;

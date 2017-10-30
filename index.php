@@ -4,7 +4,7 @@
 
 	if( isset($_SESSION['authenticationFlag']) === true )
 	{
-		header('Location: main.php?channel=General');
+		header('Location: main.php?channel=general');
 		exit;
 	}
 ?>
@@ -112,9 +112,9 @@
 		<?php
 			$msgExtraParams = array('max' => 3);
 			
-			echo '<h3>General</h3>';
+			echo '<h3># general</h3>';
 			getMessages(1, 0, -1, $msgExtraParams);
-			echo '<h3>Random</h3>';
+			echo '<h3># random</h3>';
 			getMessages(2, 0, -1, $msgExtraParams);
 		 ?>
 	</div>
@@ -129,7 +129,7 @@
 
 			if( aTag.search.length === 0 )
 			{
-				aTag.search = '?channel=General';
+				aTag.search = '?channel=general';
 			}
 
 			document.getElementById('loginForm').setAttribute('action', 'main.php' + aTag.search);
