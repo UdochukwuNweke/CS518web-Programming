@@ -131,7 +131,7 @@ function parsePost()
 				postReaction($reaction_type_id, $post_id, $user_id, $fname, $lname);
 			}
 
-			focusOnPost($post_id);
+			//focusOnPost($post_id);
 		}
 	}
 }
@@ -451,7 +451,6 @@ Direct Messages:
 
 		console.log('\nreplyCounterClick(), params:', uriParams);
 
-		/*
 		if( uriParams.post == undefined )
 		{
 			window.location.href += '&' + post_id;
@@ -459,7 +458,7 @@ Direct Messages:
 		else
 		{
 			window.location.href = window.location.href.replace('post=' + uriParams.post, post_id);
-		}*/
+		}
 	}
 
 	/*https://stackoverflow.com/a/979996*/
