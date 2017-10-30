@@ -19,8 +19,9 @@ SET time_zone = "+00:00";
 --
 -- Database: `CS518DB`
 --
-CREATE DATABASE IF NOT EXISTS `CS518DB` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+CREATE DATABASE `CS518DB`;
 USE `CS518DB`;
+
 
 -- --------------------------------------------------------
 
