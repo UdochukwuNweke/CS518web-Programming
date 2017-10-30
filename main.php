@@ -204,8 +204,8 @@ function getChannelsOfType($allChannels, $key, $type='channel_id')
 
 function getChannelPartitions($allChannels, $memberChannels)
 {
-	/*	
-		Create channel partitions borrowed from the 'real' slack:
+	/*
+		Create channel partitions:
 		1. public channels user is a member of -- display in channel panel/profiles
 		2. private channels user is a member of -- display in channel panel with lock sign logo
 		2. public channels user is NOT a member -- display in browse

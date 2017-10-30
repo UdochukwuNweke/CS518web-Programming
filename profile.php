@@ -12,7 +12,7 @@
 	{
 		header('Location: profile.php?user=' . $_SESSION['authenticationFlag']['user_id'] );
 	}
-	//Borrowed from 'the real' slack application
+
 	//for public channel membership can be acquired by:
 	//a. clicking join
 	//b. by invitation
