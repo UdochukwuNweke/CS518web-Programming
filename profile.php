@@ -135,7 +135,13 @@
 	  			
 	  			<h3>Public Channel Membership</h3>
 	  			<ol>
-		  			<?php 
+		  			<?php
+		  				for($i = 0; $i<count($_SESSION['pub-memb-channels']); $i++)
+		  				{
+		  					$channel = $_SESSION['pub-memb-channels'][$i];
+		  					echo '<li>' . getHTMLForChannel($channel) . '</li>';
+		  				}
+		  				/*
 		  				for($i = 0; $i<count($_SESSION['channels']); $i++)
 		  				{
 		  					if( $_SESSION['channels'][$i]['type'] == 'PUBLIC' )
@@ -143,6 +149,7 @@
 		  						echo '<li>' . getHTMLForChannel($_SESSION['channels'][$i]) . '</li>';
 		  					}
 		  				}
+		  				*/
 		  			?>
 				</ol>
 

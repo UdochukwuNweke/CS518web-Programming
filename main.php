@@ -346,7 +346,10 @@ Channels:
 	echo '</ul>';
 
 	$_SESSION['channels'] = array_merge($channels, $channelPartition['pub-non-memb']);
-
+	$_SESSION['pub-memb-channels'] = $channelPartition['pub-memb'];
+	
+	//patch:
+	
 	/*
 		//Delete post testing all aspects of channel visibility
 		if( count($channels) !== 0 )

@@ -75,6 +75,8 @@ else
 	$_SESSION['register.php.msg'] = 'An error occured. Please report to the admin';
 }
 
+$_SESSION['channels'] = array();
+$_SESSION['pub-memb-channels'] = array();
 header('Location: index.php');
 exit;
 //check if user name exists - end
