@@ -128,7 +128,7 @@ function parsePost()
 				postReaction($reaction_type_id, $post_id, $user_id, $fname, $lname);
 			}
 
-			//focusOnPost($post_id);
+			focusOnPost($post_id);
 		}
 	}
 }
