@@ -113,15 +113,12 @@ function parsePost()
 			$reaction_type_id = -1;
 			
 			//consider review (tight coupling) - start
-			//the reaction type is the value of the emoji key, but the emoji key is of form "emoji key: count"
-			//so this code attempts to remove the count in order to retrieve the reaction type by using the emoji key
-			$reaction_type_id = explode(': ', $_POST['reaction']);
-			if( count($reaction_type_id) != 0 )
+			foreach ($_POST as $key => $value) 
 			{
-				$reaction_type_id = $reaction_type_id[0];
-				if( isset($_POST[$reaction_type_id]) )
+				if( strpos($key, 'reaction-') !== false )
 				{
-					$reaction_type_id = $_POST[$reaction_type_id];
+					$reaction_type_id = explode('reaction-', $key);
+					$reaction_type_id = $reaction_type_id[1];
 				}
 			}
 			//consider review (tight coupling) - end

@@ -240,6 +240,7 @@ function post($user_id, $fname, $lname, $channel_id, $parent_id, $content)
 
 function postReaction($reaction_type_id, $post_id, $user_id, $fname, $lname)
 {
+	//avoid duplicate reaction - start
 	$doesReactionExist = genericGetAll('Reaction', 'WHERE post_id=' . $post_id . ' AND user_id='. $user_id);
 	if( count($doesReactionExist) != 0 )
 	{
@@ -262,6 +263,7 @@ function postReaction($reaction_type_id, $post_id, $user_id, $fname, $lname)
 			}
 		}
 	}
+	//avoid duplicate reaction - end
 
 	$hasRows = false;
 	try
@@ -583,19 +585,24 @@ function getMsgDiv($post_id, $user_id, $fname, $lname, $datetime, $content, $par
 			for($i = 0; $i < count($msgExtraParams['reactionTypes']); $i++)
 			{
 				$reacType = $msgExtraParams['reactionTypes'][$i];
-				echo '<input value="'. $auth_user_id . '" type="hidden" name="user_id">';
-				echo '<input class="pure-button" type="hidden" value="' . $reacType['reaction_type_id'] . '" name="' . $reacType['emoji'] . '">';
-				
+				if( $i == 0 )
+				{
+					echo '<input value="'. $auth_user_id . '" type="hidden" name="user_id">';
+				}
+				//echo '<input class="pure-button" type="hidden" value="' . $reacType['reaction_type_id'] . '" name="' . $reacType['emoji'] . '">';
+				//echo '<input class="pure-button" type="hidden" value="' . $reacType['reaction_type_id'] . '" name="reaction_type_id-' . $reacType['reaction_type_id'] . '">';
 
 				if( isset($reactionDetails[$reacType['reaction_type_id']]) )
 				{
-					echo '<input class="pure-button" type="submit" value="' . $reacType['emoji'] . ': ' . count($reactionDetails[$reacType['reaction_type_id']]) . '" name="reaction">';
+					echo '<input class="pure-button" type="submit" value="' . $reacType['emoji'] . ': ' . count($reactionDetails[$reacType['reaction_type_id']]) . '" name="reaction-' . $reacType['reaction_type_id'] . '">';
 				}
 				else
 				{
-					echo '<input class="pure-button" type="submit" value="' . $reacType['emoji'] . ': 0" name="reaction">';
+					echo '<input class="pure-button" type="submit" value="' . $reacType['emoji'] . ': 0" name="reaction-' . $reacType['reaction_type_id'] . '">';
 				}
 			}
+
+			echo '<input class="pure-button" type="hidden" name="reaction">';
 		}
 		//generate reaction fields - end
 		
