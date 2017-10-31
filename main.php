@@ -76,7 +76,7 @@ function parsePost()
 		return;
 	}
 
-	var_dump( $_POST );
+	//var_dump( $_POST );
 
 	$user_id = $_SESSION['authenticationFlag']['user_id'];
 	$fname = $_SESSION['authenticationFlag']['fname'];
