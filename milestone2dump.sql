@@ -139,7 +139,7 @@ INSERT INTO `Post` (`post_id`, `user_id`, `fname`, `lname`, `channel_id`, `paren
 (91, 3, 'Doc', 'Hudson', 1, 90, '2017-10-27 01:03:59', 'Hello swift, i like your album'),
 (92, 8, 'John', 'Snow', 1, -1, '2017-10-27 01:26:19', 'Winter is coming'),
 (93, 1, 'Tow', 'Mater', 1, 92, '2017-10-27 01:30:42', 'John nice image'),
-(94, 9, 'Portia', 'Hightower', 1, 92, '2017-10-27 20:31:12', 'Hello John snow this is portia'),
+(94, 9, 'Jack', 'Hightower', 1, 92, '2017-10-27 20:31:12', 'Hello John snow this is jack'),
 (96, 8, 'John', 'Snow', 4, -1, '2017-10-29 20:42:55', 'Hello secrets first message');
 
 -- --------------------------------------------------------
@@ -170,7 +170,7 @@ INSERT INTO `Reaction` (`reaction_id`, `post_id`, `user_id`, `fname`, `lname`, `
 (34, 77, 2, 'Sally', 'Carrera', 1),
 (37, 45, 1, 'Tow', 'Mater', 2),
 (38, 92, 1, 'Tow', 'Mater', 1),
-(40, 92, 9, 'Portia', 'Hightower', 2),
+(40, 92, 9, 'Jack', 'Hightower', 2),
 (41, 96, 7, 'Udo', 'Nweke', 1);
 
 -- --------------------------------------------------------
