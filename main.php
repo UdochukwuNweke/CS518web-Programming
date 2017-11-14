@@ -159,7 +159,12 @@ function getCurChannel()
 
 	if( isset($_GET['channel']) && isset($_SESSION['channels']) )
 	{
-		$channel = genericGetFromArr($_SESSION['channels'], $_GET['channel'], 'name');
+		$channels = array_merge( 
+			$_SESSION['channels']['pub-memb'], 
+			$_SESSION['channels']['priv-memb'] 
+		);
+		
+		$channel = genericGetFromArr($channels, $_GET['channel'], 'name');
 
 		if( count($channel) != 0 )
 		{
@@ -287,6 +292,7 @@ function printChannelMsg($channelInfo, $msgExtraParams)
 
 <html>
 <head>
+	<script src="common.js"></script>
 	<link rel="stylesheet" type="text/css" href="style.css">
 	<link href="https://fonts.googleapis.com/css?family=Poiret+One" rel="stylesheet">
 	<link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
@@ -345,9 +351,12 @@ Channels:
 		}
 	echo '</ul>';
 
-	$_SESSION['channels'] = array_merge($channels, $channelPartition['pub-non-memb']);
-	$_SESSION['pub-memb-channels'] = $channelPartition['pub-memb'];
+	$_SESSION['channels'] = array();
+	$_SESSION['channels']['pub-memb'] = $channelPartition['pub-memb'];
+	$_SESSION['channels']['priv-memb'] = $channelPartition['priv-memb'];
+	$_SESSION['channels']['pub-non-memb'] = $channelPartition['pub-non-memb'];
 	
+
 	//patch:
 	
 	/*
@@ -372,7 +381,7 @@ Direct Messages:
 <hr>
 
 <?php
-	$users = genericGetAll('User', 'WHERE user_id!=' . $_SESSION['authenticationFlag']['user_id']);
+	$users = genericGetAll('User', 'WHERE user_id!=' . $_SESSION['authenticationFlag']['user_id'], 'user_id, fname, lname');
 	$_SESSION['users'] = $users;
 
 	echo '<ul style="list-style-type:none;">';//credit: https://stackoverflow.com/a/9709788
@@ -397,6 +406,7 @@ Direct Messages:
 
 			$msgExtraParams = array();
 			$msgExtraParams['reactionTypes'] = $reactionTypes;
+			$msgExtraParams['role_type'] = $_SESSION['authenticationFlag']['role_type'];
 
 			if( isset($_GET['channel']) )
 			{
@@ -459,29 +469,6 @@ Direct Messages:
 		{
 			window.location.href = window.location.href.replace('post=' + uriParams.post, post_id);
 		}
-	}
-
-	/*https://stackoverflow.com/a/979996*/
-	function processURL()
-	{
-		var params = {};
-
-		var aTag = document.createElement('a');
-		aTag.href = window.location.href;
-
-	    if ( aTag.search.length != 0 ) 
-	    {
-		    var parts = aTag.search.substring(1).split('&');
-
-		    for (var i = 0; i < parts.length; i++) 
-		    {
-		        var nv = parts[i].split('=');
-		        if (!nv[0]) continue;
-		        params[nv[0]] = nv[1] || true;
-		    }
-		}
-
-		return params;
 	}
 
 </script>

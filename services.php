@@ -44,6 +44,11 @@ CS518 Tables
 		post_id
 		user_id
 		reaction_type_id
+
+	Role
+		role_id
+		user_id
+		role_type
 */
 
 /*https://www.w3schools.com/php/php_form_validation.asp*/
@@ -74,7 +79,7 @@ function validatePost()
  *
  * @param string email
  * @param string password
- * @return (array) - user user_id, fname, lname array
+ * @return (array) - user user_id, fname, lname, role_type array
  */
 function login($email, $password)
 {
@@ -102,6 +107,13 @@ function login($email, $password)
 		        $names['user_id'] = $user_id;
 		        $names['fname'] = $fname;
 		        $names['lname'] = $lname;
+		        $names['role_type'] = 'DEFAULT';
+
+		        $role = genericGetAll('Role', 'WHERE user_id=' . $user_id);
+		        if( count($role) !== 0 )
+		        {
+		        	$names['role_type'] = $role[0]['role_type'];
+		        }
 			}
 
 			$sqlQuery -> close();
@@ -317,6 +329,44 @@ function postReaction($reaction_type_id, $post_id, $user_id, $fname, $lname)
 	return $hasRows;
 }
 
+function setRole($user_id, $role_type)
+{
+	$hasRows = false;
+
+	try
+	{
+		$conn = new mysqli($GLOBALS['serverName'], $GLOBALS['dbUserName'], $GLOBALS['dbPassword'], $GLOBALS['dbname']);
+
+		// Check connection
+		if( $conn -> connect_error ) 
+		{
+			// consider logging error
+			echo 'Connection failed: ' . $conn -> connect_error;
+		} 
+		else
+		{
+			$sqlQuery = $conn -> prepare('INSERT INTO  Role (user_id, role_type) VALUES (?, ?)');
+			$sqlQuery -> bind_param(
+				'is', 
+				$user_id,
+				$role_type
+			);
+
+			$sqlQuery -> execute();
+			if( $conn -> affected_rows !== 0 )
+			{
+				$hasRows = true;
+			}
+		}
+	}
+	catch(Exception $e) 
+	{
+		echo 'Message: ' . $e -> getMessage();
+	}
+
+	return $hasRows;
+}
+
 function setChannelMembership($channel_id, $user_id)
 {
 	$hasRows = false;
@@ -435,6 +485,8 @@ function register($fname, $lname, $email, $password)
 				{
 					$hasRows = true;
 				}
+
+				setRole($user_id, 'DEFAULT');
 			}
 
 			$sqlQuery -> close();
@@ -456,7 +508,7 @@ function register($fname, $lname, $email, $password)
  * @param string optionalWhereClause: custom defined where clause
  * @return (array)
  */
-function genericGetAll($table, $optionalWhereClause='')
+function genericGetAll($table, $optionalWhereClause='', $optionalSelect='*')
 {
 	$table = trim($table);
 	if( strlen($table) == 0 )
@@ -469,7 +521,7 @@ function genericGetAll($table, $optionalWhereClause='')
 	try
 	{
 		$conn = new mysqli($GLOBALS['serverName'], $GLOBALS['dbUserName'], $GLOBALS['dbPassword'], $GLOBALS['dbname']);
-		$sqlQuery = 'SELECT * FROM ' . $table . ' ' . $optionalWhereClause;
+		$sqlQuery = 'SELECT '. $optionalSelect . ' FROM ' . $table . ' ' . $optionalWhereClause;
 
 		$result = $conn -> query($sqlQuery);
 		//$payload = mysqli_fetch_all ($result, MYSQLI_ASSOC);
@@ -572,7 +624,8 @@ function getMsgDiv($post_id, $user_id, $fname, $lname, $datetime, $content, $par
 		echo '<input value="'. $channel_id . '" type="hidden" name="channel_id">';//used to know channel for a reply msg
 		echo '<input placeholder="Enter reply" type="text" name="post">';
 		
-		if( $user_id == $auth_user_id )
+		//if( $user_id == $auth_user_id )
+		if( $msgExtraParams['role_type'] === 'ADMIN' )
 		{
 			echo '<input class="pure-button" type="submit" value="Delete" name="delete">';
 		}

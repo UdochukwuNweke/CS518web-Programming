@@ -47,6 +47,7 @@
 <html>
 
 <head>
+	<script src="common.js"></script>
 	<link rel="stylesheet" type="text/css" href="style.css">
 	<link href="https://fonts.googleapis.com/css?family=Poiret+One" rel="stylesheet">
 	<link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
@@ -136,20 +137,11 @@
 	  			<h3>Public Channel Membership</h3>
 	  			<ol>
 		  			<?php
-		  				for($i = 0; $i<count($_SESSION['pub-memb-channels']); $i++)
+		  				for($i = 0; $i<count($_SESSION['channels']['pub-memb']); $i++)
 		  				{
-		  					$channel = $_SESSION['pub-memb-channels'][$i];
+		  					$channel = $_SESSION['channels']['pub-memb'][$i];
 		  					echo '<li>' . getHTMLForChannel($channel) . '</li>';
 		  				}
-		  				/*
-		  				for($i = 0; $i<count($_SESSION['channels']); $i++)
-		  				{
-		  					if( $_SESSION['channels'][$i]['type'] == 'PUBLIC' )
-		  					{
-		  						echo '<li>' . getHTMLForChannel($_SESSION['channels'][$i]) . '</li>';
-		  					}
-		  				}
-		  				*/
 		  			?>
 				</ol>
 
@@ -169,8 +161,125 @@
 
 	  </tr>
 
+	  <tr>
+	  	<td align="center">
+	  		
+	  		<div style="padding: 10px 0px 0px 10px; width:80%; height: 20%;">
+	  			
+	  			<?php
+
+	  				function setMembershipForUsers($memberChannels, $users)
+	  				{
+	  					for($i = 0; $i<count($users); $i++)
+	  					{
+	  						$users[$i]['channel_membership'] = array();
+
+	  						for($j = 0; $j < count($memberChannels); $j++)
+	  						{
+	  							if( $memberChannels[$j]['user_id'] === $users[$i]['user_id'] )
+	  							{
+	  								array_push( $users[$i]['channel_membership'], $memberChannels[$j]['channel_id'] );
+	  							}
+
+	  						}
+	  					}
+
+	  					return $users;
+	  				}
+
+	  				function createChannelDict($channels)
+	  				{
+	  					$channelDict = array();
+
+	  					for($i = 0; $i<count($channels); $i++)
+	  					{
+	  						$channelDict[ $channels[$i]['channel_id'] ] = $channels[$i];
+	  					}
+
+	  					return $channelDict;
+	  				}
+
+	  				$edit_user = array();
+	  				if( $_SESSION['authenticationFlag']['role_type'] === 'ADMIN' )
+	  				{
+	  					$memberChannels = genericGetAll('Channel_Membership');
+	  					$channels = createChannelDict(genericGetAll('Channel'));
+	  					$_SESSION['users'] = setMembershipForUsers($memberChannels, $_SESSION['users']);
+	  					
+	  					if( isset($_GET['edit_user']) == true )
+						{
+							$edit_user = $_GET['edit_user'];
+						}
+	
+	  					echo '<h3>Edit User Channel Membership</h3>';
+	  					echo '<select onchange="editMembershipForUser(this)">';
+	  					echo '<option value="">Select a user</option>';
+	  					
+	  					for($i = 0; $i<count($_SESSION['users']); $i++)
+	  					{
+	  						$user = $_SESSION['users'][$i];
+	  						$selectedFlag = '';
+	  						if( $edit_user == $user['user_id'] )
+	  						{
+	  							$selectedFlag = 'selected';
+	  							$edit_user = $user;
+	  						}
+
+	  						echo '<option '. $selectedFlag .' value="' . $user['user_id'] . '">' . $user['fname'] . ' ' . $user['lname'] . '</option>';
+	  					}
+	  					echo '</select>';
+					}	
+	  			?>
+	  			
+	  			<div style="text-align: left;">
+		  			<form class="pure-form" action="profile.php" method="post">
+		  				<fieldset>
+
+		  					<?php
+		  					if( $_SESSION['authenticationFlag']['role_type'] === 'ADMIN' )
+		  					{
+		  						if( count($edit_user) != 0 )
+		  						{
+		  							for($i = 0; $i<count($edit_user['channel_membership']); $i++)
+		  							{
+		  								$channel_id = $edit_user['channel_membership'][$i];
+
+		  								echo '<input checked type="checkbox" name="' . $channel_id . '"> ' . getHTMLForChannel($channels[$channel_id]);	
+		  							}
+		  							echo '<br>';
+		  						}
+
+		  						echo '<button type="submit" class="pure-button pure-button-primary">Submit</button>';
+		  					}
+		  					?>
+
+						</fieldset>
+		  			</form>
+	  			</div>
+	  			
+				
+	  		</div>
+
+	  	</td>
+
+	  </tr>
+
 	</table>
 
+	<script type="text/javascript">
+		function editMembershipForUser(sender)
+		{
+			var uriParams = processURL();
+			if( uriParams.edit_user == undefined )
+			{
+				window.location.href += '&edit_user=' + sender.value;
+			}
+			else
+			{
+				window.location.href = window.location.href.replace('edit_user=' + uriParams.edit_user, 'edit_user=' + sender.value);
+			}
+		}
+	</script>
 
 </body>
 </html>

@@ -249,11 +249,15 @@
 
 						<select name="channel_id">
             				<?php
-	            				for($i = 0; $i<count($_SESSION['channels']); $i++)
+	            				$channels = array_merge( 
+									$_SESSION['channels']['pub-memb'], 
+									$_SESSION['channels']['priv-memb'] 
+								);
+	            				for($i = 0; $i<count($channels); $i++)
 	            				{
 	            					$privateFlag = '';
 	            					$selectedFlag = '';
-	            					$channel = $_SESSION['channels'][$i];
+	            					$channel = $channels[$i];
 
 	            					if( $_POST['channel_id'] === $channel['channel_id'] )
 	            					{

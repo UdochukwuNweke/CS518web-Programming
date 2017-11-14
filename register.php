@@ -76,7 +76,6 @@ else
 }
 
 $_SESSION['channels'] = array();
-$_SESSION['pub-memb-channels'] = array();
 header('Location: index.php');
 exit;
 //check if user name exists - end

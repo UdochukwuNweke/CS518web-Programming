@@ -7,6 +7,13 @@ error_reporting(E_ALL);
 include('services.php');
 
 /*
+$user_id = 16;
+$role_type = 'DEFAULT';
+setRole($user_id, $role_type);
+*/
+
+
+/*
 $user_id = -1;
 $channel_id = 2;
 
