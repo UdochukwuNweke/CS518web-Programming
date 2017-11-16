@@ -696,8 +696,17 @@ function getMsgDiv($post_id, $user_id, $fname, $lname, $datetime, $content, $par
 
 	echo '<strong>' . $fname . '<br>' . $lname . ' - ' . $post_id . ' </strong> <br>(' . $datetime . ')<br><br>';
 	
-	//echo '<pre>' . $content . '</pre>' . '<br><br>';
-	echo $content . '<br><br>';
+	/*if( isset($msgExtraParams['pre_tag']) )
+	{
+		echo '<pre>' . $content . '</pre>';
+	}
+	else
+	{
+		echo $content;
+	}
+	*/
+	echo $content;
+	echo '<br><br>';
 
 	echo '<input type="submit" onclick="replyCounterClick(' . $post_id . ')" class="pure-button" class="replyCounter" value="'. $replyCount . ' Replies"><br>';
 	echo '<form class="pure-form" method="post">';
@@ -744,7 +753,7 @@ function getMsgDiv($post_id, $user_id, $fname, $lname, $datetime, $content, $par
 			echo '<input class="pure-button" type="hidden" name="reaction">';
 		}
 		//generate reaction fields - end
-		
+		echo '<br>Pre-formated: <input type="checkbox" name="pre_tag"><br>';
 	echo '</form>';
 	
 	echo '<br>';

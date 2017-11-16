@@ -113,7 +113,12 @@ function parsePost()
 				//this is a reply
 				$parent_id = $_POST['post_id'];
 			}
-			
+
+			if( isset($_POST['pre_tag']) )
+			{
+				$content = '<pre>' . $content . '</pre>';
+			}
+
 			post($user_id, $fname, $lname, $channel_id, $parent_id, $content);
 			focusOnPost( $_POST['post_id'] );
 		}
