@@ -3,7 +3,7 @@
 date_default_timezone_set('America/New_York');
 
 $serverName = 'localhost';
-$dbUserName = 'admin';
+$dbUserName = 'unweke';
 $dbPassword = 'M0n@rch$';
 $dbname = 'CS518DB';
 
@@ -367,6 +367,42 @@ function setRole($user_id, $role_type)
 	return $hasRows;
 }
 
+function removeChannelMembership($channel_id, $user_id)
+{
+	$hasRows = false;
+
+	try
+	{
+		$conn = new mysqli($GLOBALS['serverName'], $GLOBALS['dbUserName'], $GLOBALS['dbPassword'], $GLOBALS['dbname']);
+		// Check connection
+		if( $conn -> connect_error ) 
+		{
+			// consider logging error
+			echo 'Connection failed: ' . $conn -> connect_error;
+		} 
+		else
+		{
+			$sqlQuery = $conn -> prepare('DELETE FROM Channel_Membership WHERE channel_id=? AND user_id=?');
+			$sqlQuery -> bind_param('ii', $channel_id, $user_id);
+
+			$sqlQuery -> execute();
+			if( $conn -> affected_rows !== 0 )
+			{
+				$hasRows = true;
+			}
+
+			$sqlQuery -> close();
+			$conn -> close();
+		}
+	}
+	catch(Exception $e) 
+	{
+		echo 'Message: ' . $e -> getMessage();
+	}
+
+	return $hasRows;
+}
+
 function setChannelMembership($channel_id, $user_id)
 {
 	$hasRows = false;
@@ -383,11 +419,54 @@ function setChannelMembership($channel_id, $user_id)
 		} 
 		else
 		{
-			$sqlQuery = $conn -> prepare('INSERT INTO  Channel_Membership (channel_id, user_id) VALUES (?, ?)');
+			$sqlQuery = $conn -> prepare('INSERT INTO Channel_Membership (channel_id, user_id) VALUES (?, ?)');
 			$sqlQuery -> bind_param(
 				'ii', 
 				$channel_id,
 				$user_id
+			);
+
+			$sqlQuery -> execute();
+			if( $conn -> affected_rows !== 0 )
+			{
+				$hasRows = true;
+			}
+		}
+	}
+	catch(Exception $e) 
+	{
+		echo 'Message: ' . $e -> getMessage();
+	}
+
+	return $hasRows;
+}
+
+function setChannelArchiveState($channel_id, $archiveState)
+{
+	$hasRows = false;
+
+	if( $archiveState != 'ARCHIVE' && $archiveState != 'ACTIVE' )
+	{
+		return false;
+	}
+
+	try
+	{
+		$conn = new mysqli($GLOBALS['serverName'], $GLOBALS['dbUserName'], $GLOBALS['dbPassword'], $GLOBALS['dbname']);
+
+		// Check connection
+		if( $conn -> connect_error ) 
+		{
+			// consider logging error
+			echo 'Connection failed: ' . $conn -> connect_error;
+		} 
+		else
+		{
+			$sqlQuery = $conn -> prepare('UPDATE Channel SET state=? WHERE channel_id=?');
+			$sqlQuery -> bind_param(
+				'si', 
+				$archiveState,
+				$channel_id
 			);
 
 			$sqlQuery -> execute();
@@ -421,13 +500,15 @@ function addChannel($name, $purpose, $type, $creator_id)
 		} 
 		else
 		{
-			$sqlQuery = $conn -> prepare('INSERT INTO  Channel (name, purpose, type, creator_id) VALUES (?, ?, ?, ?)');
+			$state = 'ACTIVE';
+			$sqlQuery = $conn -> prepare('INSERT INTO Channel (name, purpose, type, creator_id, state) VALUES (?, ?, ?, ?, ?)');
 			$sqlQuery -> bind_param(
-				'sssi', 
+				'sssis', 
 				$name,
 				$purpose,
 				$type, 
-				$creator_id
+				$creator_id,
+				$state
 			);
 
 			$sqlQuery -> execute();
@@ -615,6 +696,7 @@ function getMsgDiv($post_id, $user_id, $fname, $lname, $datetime, $content, $par
 
 	echo '<strong>' . $fname . '<br>' . $lname . ' - ' . $post_id . ' </strong> <br>(' . $datetime . ')<br><br>';
 	
+	//echo '<pre>' . $content . '</pre>' . '<br><br>';
 	echo $content . '<br><br>';
 
 	echo '<input type="submit" onclick="replyCounterClick(' . $post_id . ')" class="pure-button" class="replyCounter" value="'. $replyCount . ' Replies"><br>';
@@ -622,12 +704,16 @@ function getMsgDiv($post_id, $user_id, $fname, $lname, $datetime, $content, $par
 		echo '<input value="'. $post_id . '" type="hidden" name="post_id">';//used for knowing post to delete
 		echo '<input value="'. $parent_id . '" type="hidden" name="parent_id">';//used to show if this msg is a reply
 		echo '<input value="'. $channel_id . '" type="hidden" name="channel_id">';//used to know channel for a reply msg
-		echo '<input placeholder="Enter reply" type="text" name="post">';
+		
+		//echo '<input placeholder="Enter reply" type="text" name="post">';
+		echo '<textarea placeholder="Enter reply" name="post"></textarea>';
+		echo '<input type="hidden" name="channel_state" value="' . $msgExtraParams['state'] . '">';
 		
 		//if( $user_id == $auth_user_id )
 		if( $msgExtraParams['role_type'] === 'ADMIN' )
 		{
 			echo '<input class="pure-button" type="submit" value="Delete" name="delete">';
+			echo '<input value="'. $user_id . '" type="hidden" name="post_user_id">';
 		}
 
 		echo '<input class="pure-button" type="submit" value="Reply" name="reply">';
@@ -640,7 +726,7 @@ function getMsgDiv($post_id, $user_id, $fname, $lname, $datetime, $content, $par
 				$reacType = $msgExtraParams['reactionTypes'][$i];
 				if( $i == 0 )
 				{
-					echo '<input value="'. $auth_user_id . '" type="hidden" name="user_id">';
+					echo '<input value="'. $auth_user_id . '" type="hidden" name="user_id">';					
 				}
 				//echo '<input class="pure-button" type="hidden" value="' . $reacType['reaction_type_id'] . '" name="' . $reacType['emoji'] . '">';
 				//echo '<input class="pure-button" type="hidden" value="' . $reacType['reaction_type_id'] . '" name="reaction_type_id-' . $reacType['reaction_type_id'] . '">';
@@ -719,19 +805,33 @@ function getMessages($channel_id, $auth_user_id, $parent_id=-1, $msgExtraParams=
 	getHTMLForMessages($posts, $channel_id, $auth_user_id, $max, $msgExtraParams);
 }
 
-function getHTMLForChannel($channel)
+function getHTMLForChannel($channel, $linkFlag=true)
 {
 	$privateFlag = '';
+	$archiveFlag = '';
 	if( $channel['type'] == 'PRIVATE' )
 	{
 		$privateFlag = '&#128274;';
 	}
 
-	$html = '<a style="color: inherit; text-decoration: none;" href="main.php?channel=' 
+	if( $channel['state'] == 'ARCHIVE' )
+	{
+		$archiveFlag = '&#9688;';
+	}
+
+	if( $linkFlag == true )
+	{
+		$html = '<a style="color: inherit; text-decoration: none;" href="main.php?channel=' 
 		. $channel['name'] 
 		. '"> # ' 
-		. $privateFlag . $channel['name'] 
+		. $privateFlag . $archiveFlag . $channel['name'] 
 		. '</a> <br>';
+	}
+	else
+	{
+		$html = '<span> # ' . $privateFlag . $archiveFlag . $channel['name'] . '</span>';
+	}
+	
 
 	return $html;
 }

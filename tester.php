@@ -6,6 +6,20 @@ error_reporting(E_ALL);
 
 include('services.php');
 
+
+/*
+$channel_id = 3;
+$archiveState = 'ARCHIVE';
+//$archiveState = 'ACTIVE';
+setChannelArchiveState($channel_id, $archiveState);
+*/
+
+/*
+$channel_id = 4;
+$user_id = 7;
+removeChannelMembership($channel_id, $user_id);
+*/
+
 /*
 $user_id = 16;
 $role_type = 'DEFAULT';

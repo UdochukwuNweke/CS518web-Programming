@@ -76,7 +76,15 @@ function parsePost()
 		return;
 	}
 
-	//var_dump( $_POST );
+	var_dump( $_POST );
+
+	if( isset($_POST['channel_state']) )
+	{
+		if( $_POST['channel_state'] != 'ACTIVE' )
+		{
+			return;
+		}
+	}
 
 	$user_id = $_SESSION['authenticationFlag']['user_id'];
 	$fname = $_SESSION['authenticationFlag']['fname'];
@@ -85,8 +93,11 @@ function parsePost()
 	if( isset($_POST['delete']) ) 
 	{
 		//delete
-		$post_id = $_POST['post_id'];
-		deletePost($post_id, $user_id);
+		if( $_SESSION['authenticationFlag']['role_type'] == 'ADMIN' )
+		{
+			$post_id = $_POST['post_id'];	
+			deletePost($post_id, $_POST['post_user_id']);
+		}
 	}
 	else if( isset($_POST['post']) )
 	{
@@ -155,13 +166,14 @@ function focusOnPost($post_id)
 function getCurChannel()
 {
 	//attempt to extract channel id from session channel dict using channel supplied from url param
-	$channelInfo = array('channelName' => 'general', 'channelId' =>  1, 'post' => -1);
+	$channelInfo = array('channelName' => 'general', 'channelId' =>  1, 'post' => -1, 'state' => 'ACTIVE');
 
 	if( isset($_GET['channel']) && isset($_SESSION['channels']) )
 	{
 		$channels = array_merge( 
 			$_SESSION['channels']['pub-memb'], 
-			$_SESSION['channels']['priv-memb'] 
+			$_SESSION['channels']['priv-memb'],
+			$_SESSION['channels']['pub-non-memb']
 		);
 		
 		$channel = genericGetFromArr($channels, $_GET['channel'], 'name');
@@ -170,11 +182,13 @@ function getCurChannel()
 		{
 			$channelInfo['channelName'] = $channel['name'];
 			$channelInfo['channelId'] = $channel['channel_id'];
+			$channelInfo['state'] = $channel['state'];
 		}
 		else
 		{
 			//bad channel address, set default
-			header('Location: main.php?channel=general');
+			//header('Location: main.php?channel=general');
+			header('Location: main.php');
 		}
 	}
 
@@ -218,7 +232,7 @@ function getChannelPartitions($allChannels, $memberChannels)
 	$channelPartition['priv-memb'] = array();
 	$channelPartition['pub-non-memb'] = array();
 
-	if( count($allChannels) == 0 || count($memberChannels) == 0 )
+	if( count($allChannels) == 0 )
 		return $channelPartition;
 	
 	$skipChannels = array();
@@ -327,7 +341,7 @@ Channels:
 
 
 <?php
-	$channels = genericGetAll('Channel', '');
+	$channels = genericGetAll('Channel');
 	$memberChannels = genericGetAll('Channel_Membership', 'WHERE user_id=' . $_SESSION['authenticationFlag']['user_id']);
 	$channelPartition = getChannelPartitions($channels, $memberChannels);
 
@@ -358,7 +372,6 @@ Channels:
 	
 
 	//patch:
-	
 	/*
 		//Delete post testing all aspects of channel visibility
 		if( count($channels) !== 0 )
@@ -407,6 +420,7 @@ Direct Messages:
 			$msgExtraParams = array();
 			$msgExtraParams['reactionTypes'] = $reactionTypes;
 			$msgExtraParams['role_type'] = $_SESSION['authenticationFlag']['role_type'];
+			$msgExtraParams['state'] = $channelInfo['state'];
 
 			if( isset($_GET['channel']) )
 			{
@@ -414,6 +428,7 @@ Direct Messages:
 			}
 			else if( isset($_GET['user']) )
 			{
+				//direct msg
 				$user = genericGetFromArr($users, $_GET['user'], $type='user_id');
 
 				echo '<h3>' 
@@ -431,13 +446,21 @@ Direct Messages:
 		
 		echo '</div>';
 
-		echo '<form class="pure-form" action="main.php?channel=' . $channelInfo['channelName'] . '" method="post">';
+		
+		if( $channelInfo['state'] == 'ACTIVE' )
+		{
+			echo '<form class="pure-form" action="main.php?channel=' . $channelInfo['channelName'] . '" method="post">';
 			echo '<fieldset>';
-					echo '<input type="hidden" name="channel_id" value="' . $channelInfo['channelId'] . '">';
-					echo '<input type="text" size="90%" name="post" placeholder="Enter message here">';
-					echo '<input type="submit" class="pure-button pure-button-primary">';
+			echo '<input type="hidden" name="channel_id" value="' . $channelInfo['channelId'] . '">';
+			echo '<input type="text" size="90%" name="post" placeholder="Enter message here">';
+			echo '<input type="submit" class="pure-button pure-button-primary">';
 			echo '</fieldset>';
-		echo '</form>'
+			echo '</form>';
+		}
+		else
+		{
+			echo '<strong>This channel has been archived, if you need it unarchived, please contact the administrator.</strong>';
+		}
 	?>
 	
 </div>

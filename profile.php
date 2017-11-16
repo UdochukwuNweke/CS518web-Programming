@@ -12,34 +12,6 @@
 	{
 		header('Location: profile.php?user=' . $_SESSION['authenticationFlag']['user_id'] );
 	}
-
-	//for public channel membership can be acquired by:
-	//a. clicking join
-	//b. by invitation
-
-	//for private
-	//a. by invitation
-	
-	if( $_FILES )
-	{
-		$uploaddir = './profileImgs/';
-  		$uploadfile = $uploaddir . $_SESSION['authenticationFlag']['user_id'] . '.jpg';
-  		$uploadfile = str_replace('.php', '.txt', $uploadfile);//prevent .php files from being uploaded
-
-		if (!$_FILES['mkfile']['error'] && move_uploaded_file($_FILES['mkfile']['tmp_name'], $uploadfile)) 
-		{
-			$_SESSION['profile.php.msg'] = 'go';
-			chmod($uploadfile, 0644);
-		} 
-		elseif($_FILES['mkfile']['error'])
-		{
-			$_SESSION['profile.php.msg'] = 'Error ' . $_FILES['mkfile']['error'] . '. Make sure file size is under 1MB.';
-		} 
-		else 
-		{
-			$_SESSION['profile.php.msg'] = 'Error during upload';
-		}
-	}
 	
 ?>
 
@@ -59,7 +31,7 @@
 	
 	<div style="text-align:center; font-size: 40px; color: #3B0029;">
 		<?php
-			echo '<a style="color: inherit; text-decoration: none; font-size: 40px;" href="main.php?channel=General">  <  </a>';
+			echo '<a style="color: inherit; text-decoration: none; font-size: 40px;" href="main.php?channel=general">  <  </a>';
 			echo '<strong>Profile for: ' . $_SESSION['authenticationFlag']['fname'] . ' ' . $_SESSION['authenticationFlag']['lname'] . '</strong>';
 		?>
 	</div>
@@ -101,21 +73,21 @@
 	    	<div style="padding: 10px 0px 0px 10px;width: 80%; height: 20%;">
 				
 				<?php 
-					if( isset($_SESSION['profile.php.msg']) )
+					if( isset($_SESSION['profileOps.php.msg']) )
 					{
-						if( $_SESSION['profile.php.msg'] == 'go' )
+						if( $_SESSION['profileOps.php.msg'] == 'go' )
 						{
-							unset( $_SESSION['profile.php.msg'] );
+							//unset( $_SESSION['profileOps.php.msg'] );
 							echo '<strong><p style="color: green">Successfully uploaded file!</p></strong>';
 						}
 						else
 						{
-							echo '<strong><p style="color: red">' . $_SESSION['profile.php.msg'] . '</p></strong>';
+							echo '<strong><p style="color: red">' . $_SESSION['profileOps.php.msg'] . '</p></strong>';
 						}
 					}
 				?>
 
-				<form class="pure-form" action="profile.php" enctype="multipart/form-data" method="post">
+				<form class="pure-form" action="profileOps.php" enctype="multipart/form-data" method="post">
 				    <fieldset>
 				    	<input type="hidden" name="MAX_FILE_SIZE" value="1048576">
 				    	<input class="pure-button pure-button-primary" name="mkfile" type="file">
@@ -163,7 +135,7 @@
 
 	  <tr>
 	  	<td align="center">
-	  		
+
 	  		<div style="padding: 10px 0px 0px 10px; width:80%; height: 20%;">
 	  			
 	  			<?php
@@ -178,7 +150,8 @@
 	  						{
 	  							if( $memberChannels[$j]['user_id'] === $users[$i]['user_id'] )
 	  							{
-	  								array_push( $users[$i]['channel_membership'], $memberChannels[$j]['channel_id'] );
+	  								$channel_id = $memberChannels[$j]['channel_id'];
+	  								$users[$i]['channel_membership'][$channel_id] = true;
 	  							}
 
 	  						}
@@ -203,8 +176,8 @@
 	  				if( $_SESSION['authenticationFlag']['role_type'] === 'ADMIN' )
 	  				{
 	  					$memberChannels = genericGetAll('Channel_Membership');
-	  					$channels = createChannelDict(genericGetAll('Channel'));
 	  					$_SESSION['users'] = setMembershipForUsers($memberChannels, $_SESSION['users']);
+	  					$channels = createChannelDict(genericGetAll('Channel'));
 	  					
 	  					if( isset($_GET['edit_user']) == true )
 						{
@@ -212,6 +185,12 @@
 						}
 	
 	  					echo '<h3>Edit User Channel Membership</h3>';
+	  					
+	  					if( isset($_SESSION['admin.profileOps.php.msg.usermemb']) )
+						{
+							echo '<strong><p style="color: blue">' . $_SESSION['admin.profileOps.php.msg.usermemb'] . '</p></strong>';
+						}
+
 	  					echo '<select onchange="editMembershipForUser(this)">';
 	  					echo '<option value="">Select a user</option>';
 	  					
@@ -228,29 +207,44 @@
 	  						echo '<option '. $selectedFlag .' value="' . $user['user_id'] . '">' . $user['fname'] . ' ' . $user['lname'] . '</option>';
 	  					}
 	  					echo '</select>';
-					}	
+					}
 	  			?>
 	  			
 	  			<div style="text-align: left;">
-		  			<form class="pure-form" action="profile.php" method="post">
+		  			<form class="pure-form" action="profileOps.php" method="post">
 		  				<fieldset>
-
 		  					<?php
-		  					if( $_SESSION['authenticationFlag']['role_type'] === 'ADMIN' )
-		  					{
-		  						if( count($edit_user) != 0 )
-		  						{
-		  							for($i = 0; $i<count($edit_user['channel_membership']); $i++)
-		  							{
-		  								$channel_id = $edit_user['channel_membership'][$i];
+			  					if( $_SESSION['authenticationFlag']['role_type'] === 'ADMIN' )
+			  					{
+			  						if( isset($edit_user['user_id']) )
+			  						{
+			  							echo '<input type="hidden" name="user_id" value="'. $edit_user['user_id'] .'">';
+			  							echo '<input type="hidden" name="fname" value="'. $edit_user['fname'] .'">';
+			  							echo '<input type="hidden" name="lname" value="'. $edit_user['lname'] .'">';
 
-		  								echo '<input checked type="checkbox" name="' . $channel_id . '"> ' . getHTMLForChannel($channels[$channel_id]);	
-		  							}
-		  							echo '<br>';
-		  						}
+			  							foreach($edit_user['channel_membership'] as $channel_id => $onOffFlag)
+			  							{
+			  								echo '<input type="hidden" name="channel_id_memb[]" value="' . $channel_id . '">';
+			  							}
 
-		  						echo '<button type="submit" class="pure-button pure-button-primary">Submit</button>';
-		  					}
+			  							foreach ($channels as $channel_id => $channelDetails) 
+			  							{
+			  								if( isset($edit_user['channel_membership'][$channel_id]) )
+			  								{
+			  									echo '<input checked value="'. $channel_id .'" type="checkbox" name="channel_id_mod[]"> ' . getHTMLForChannel($channelDetails, false) . '<br>';
+			  								}
+			  								else
+			  								{
+			  									$edit_user['channel_membership'][$channel_id] = false;
+			  									echo '<input value="'. $channel_id .'" type="checkbox" name="channel_id_mod[]"> ' . getHTMLForChannel($channelDetails, false) . '<br>';
+			  								}
+										}
+										echo '<input type="hidden" name="edit_user_memb">';
+			  							echo '<br>';
+			  							echo '<button type="submit" class="pure-button pure-button-primary">Submit</button>';
+			  						}
+			  						
+			  					}
 		  					?>
 
 						</fieldset>
@@ -259,7 +253,34 @@
 	  			
 				
 	  		</div>
+	  	</td>
 
+	  	<td align="center">
+	  		<div style="padding: 10px 0px 0px 10px; width:80%; height: 20%;">
+		  			<?php
+		  				if( $_SESSION['authenticationFlag']['role_type'] === 'ADMIN' )
+		  				{
+		  					echo '<div style="text-align: right;">';
+		  					echo '<h3>Current Archived Channels</h3>';							
+		  					
+		  					foreach ($channels as $channel_id => $channel) 
+		  					{
+		  						$checkedFlag = '';
+		  						if( $channel['state'] == 'ARCHIVE' )
+		  						{
+		  							echo getHTMLForChannel($channel, false). ' <input onchange="editArchive(this)" value="'. $channel_id .'" type="checkbox" checked name="channel_archive[]"> <br>';
+		  						}
+		  						else
+		  						{
+		  							echo getHTMLForChannel($channel, false). ' <input onchange="editArchive(this)" value="'. $channel_id .'" type="checkbox" name="channel_active[]"> <br>';
+		  						}
+		  						
+		  					}
+		  					echo '<br>';
+		  					echo '</div>';
+		  				}
+		  			?>
+			</div>
 	  	</td>
 
 	  </tr>
@@ -276,10 +297,29 @@
 			}
 			else
 			{
+				if( sender.value.length == 0 )
+				{
+					sender.value = 1;
+				}
 				window.location.href = window.location.href.replace('edit_user=' + uriParams.edit_user, 'edit_user=' + sender.value);
 			}
 		}
-	</script>
 
+		function editArchive(sender)
+		{
+			var state = '';
+			if( sender.checked === true )
+			{
+				state = 'ARCHIVE';
+			}
+			else
+			{
+				state = 'ACTIVE';
+			}
+
+			window.location.href = './profileOps.php?channel_archive_state=' + sender.value + '&archive_state=' + state;
+
+		}
+	</script>
 </body>
 </html>
