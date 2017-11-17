@@ -336,6 +336,10 @@ function printChannelMsg($channelInfo, $msgExtraParams)
 				?>
 			</td>
 
+			<td width="20%" style="text-align:center;">
+				<a style="color: inherit; text-decoration: none;" href="help.php">Help</a>
+			</td>
+
 		</tr>
 	</table>
 </div>

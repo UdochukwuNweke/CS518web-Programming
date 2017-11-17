@@ -158,7 +158,7 @@
 	<div style="text-align:center; font-size: 40px; color: #3B0029;">
 		<?php
 			echo '<strong>Current user: ' . $_SESSION['authenticationFlag']['fname'] . ' '  . $_SESSION['authenticationFlag']['lname'] . '</strong><br><br>';
-			echo '<a style="color: inherit; text-decoration: none; font-size: 40px;" href="main.php?channel=General">  <  </a>';
+			echo '<a style="color: inherit; text-decoration: none; font-size: 40px;" href="main.php?channel=general">  <  </a>';
 			echo '<strong>Create new channel</strong>';
 		?>
 	</div>
