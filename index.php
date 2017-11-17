@@ -110,7 +110,7 @@
 
 	<div id='infoArea' style="width: 50%; height: 50%;">
 		<?php
-			$msgExtraParams = array('max' => 3, 'role_type' => 'DEFAULT');
+			$msgExtraParams = array('max' => 3, 'role_type' => 'DEFAULT', 'state' => 'ACTIVE');
 			
 			echo '<h3># general</h3>';
 			getMessages(1, 0, -1, $msgExtraParams);
