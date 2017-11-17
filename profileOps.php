@@ -6,13 +6,29 @@ $_SESSION['profileOps.php.msg'] = '';
 if( $_FILES )
 {
 	$uploaddir = './profileImgs/';
-		$uploadfile = $uploaddir . $_SESSION['authenticationFlag']['user_id'] . '.jpg';
-		$uploadfile = str_replace('.php', '.txt', $uploadfile);//prevent .php files from being uploaded
+	$uploadfile = $uploaddir . $_SESSION['authenticationFlag']['user_id'] . '.jpg';
+	$uploadfile = str_replace('.php', '.txt', $uploadfile);//prevent .php files from being uploaded
 
-	if (!$_FILES['mkfile']['error'] && move_uploaded_file($_FILES['mkfile']['tmp_name'], $uploadfile)) 
+	$type = explode('/', $_FILES['mkfile']['type'])[0];
+
+	if ( !$_FILES['mkfile']['error'] ) 
 	{
-		$_SESSION['profileOps.php.msg'] = 'go';
-		chmod($uploadfile, 0644);
+		if( $type == 'image' )
+		{
+			if( move_uploaded_file($_FILES['mkfile']['tmp_name'], $uploadfile) )
+			{
+				$_SESSION['profileOps.php.msg'] = 'go';	
+				chmod($uploadfile, 0644);
+			}
+			else
+			{
+				$_SESSION['profileOps.php.msg'] = 'Sorry processing error, please try again';	
+			}
+		}
+		else
+		{
+			$_SESSION['profileOps.php.msg'] = 'Error: bad file format';	
+		}
 	} 
 	elseif($_FILES['mkfile']['error'])
 	{
