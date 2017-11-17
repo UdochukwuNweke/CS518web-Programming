@@ -696,26 +696,21 @@ function getMsgDiv($post_id, $user_id, $fname, $lname, $datetime, $content, $par
 
 	echo '<strong>' . $fname . '<br>' . $lname . ' - ' . $post_id . ' </strong> <br>(' . $datetime . ')<br><br>';
 	
-	/*if( isset($msgExtraParams['pre_tag']) )
-	{
-		echo '<pre>' . $content . '</pre>';
-	}
-	else
-	{
-		echo $content;
-	}
-	*/
 	echo $content;
-	echo '<br><br>';
+	if( strpos($content, '<pre>') == -1 )
+	{
+		echo '<br><br>';
+	}
+	
 
-	echo '<input type="submit" onclick="replyCounterClick(' . $post_id . ')" class="pure-button" class="replyCounter" value="'. $replyCount . ' Replies"><br>';
-	echo '<form class="pure-form" method="post">';
+	echo '<br><input type="submit" onclick="replyCounterClick(' . $post_id . ')" class="pure-button" class="replyCounter" value="'. $replyCount . ' Replies"><br>';
+	echo '<form class="pure-form" enctype="multipart/form-data" method="post">';
 		echo '<input value="'. $post_id . '" type="hidden" name="post_id">';//used for knowing post to delete
 		echo '<input value="'. $parent_id . '" type="hidden" name="parent_id">';//used to show if this msg is a reply
 		echo '<input value="'. $channel_id . '" type="hidden" name="channel_id">';//used to know channel for a reply msg
 		
 		//echo '<input placeholder="Enter reply" type="text" name="post">';
-		echo '<textarea placeholder="Enter reply" name="post"></textarea>';
+		echo '<textarea placeholder="Enter reply" name="post" style="margin-top: 0px; margin-bottom: 0px; height: 30px;"></textarea>';
 		echo '<input type="hidden" name="channel_state" value="' . $msgExtraParams['state'] . '">';
 		
 		//if( $user_id == $auth_user_id )
@@ -752,8 +747,12 @@ function getMsgDiv($post_id, $user_id, $fname, $lname, $datetime, $content, $par
 
 			echo '<input class="pure-button" type="hidden" name="reaction">';
 		}
+		
+		
+		echo '<input type="file" name="photo" id="upload-photo" style="opacity: 0;position: absolute;z-index: -1;" />';
 		//generate reaction fields - end
-		echo '<br>Pre-formated: <input type="checkbox" name="pre_tag"><br>';
+		echo '<br><input type="checkbox" name="pre_tag"> Pre-formated';
+		echo '<label for="upload-photo" style="cursor: pointer;">   &#128247; Upload image</label>';
 	echo '</form>';
 	
 	echo '<br>';
@@ -865,6 +864,42 @@ function getHTMLForUser($user)
 		. '</a> <br>';
 
 	return $html;
+}
+
+function uploadImage($files, $expectedType, $destName)
+{
+	$type = explode('/', $files['mkfile']['type'])[0];
+	$response = '';
+
+	if ( !$files['mkfile']['error'] ) 
+	{
+		if( $type == $expectedType )
+		{
+			if( move_uploaded_file($files['mkfile']['tmp_name'], $destName) )
+			{
+				$response = 'go';	
+				chmod($destName, 0644);
+			}
+			else
+			{
+				$response = 'Sorry processing error, please try again';	
+			}
+		}
+		else
+		{
+			$response = 'Error: bad file format - ' . $type;	
+		}
+	} 
+	elseif($files['mkfile']['error'])
+	{
+		$response = 'Error ' . $files['mkfile']['error'] . '. Make sure file size is under 1MB.';
+	} 
+	else 
+	{
+		$response = 'Error during upload';
+	}
+
+	return $response;
 }
 
 ?>

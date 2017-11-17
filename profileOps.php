@@ -9,35 +9,7 @@ if( $_FILES )
 	$uploadfile = $uploaddir . $_SESSION['authenticationFlag']['user_id'] . '.jpg';
 	$uploadfile = str_replace('.php', '.txt', $uploadfile);//prevent .php files from being uploaded
 
-	$type = explode('/', $_FILES['mkfile']['type'])[0];
-
-	if ( !$_FILES['mkfile']['error'] ) 
-	{
-		if( $type == 'image' )
-		{
-			if( move_uploaded_file($_FILES['mkfile']['tmp_name'], $uploadfile) )
-			{
-				$_SESSION['profileOps.php.msg'] = 'go';	
-				chmod($uploadfile, 0644);
-			}
-			else
-			{
-				$_SESSION['profileOps.php.msg'] = 'Sorry processing error, please try again';	
-			}
-		}
-		else
-		{
-			$_SESSION['profileOps.php.msg'] = 'Error: bad file format';	
-		}
-	} 
-	elseif($_FILES['mkfile']['error'])
-	{
-		$_SESSION['profileOps.php.msg'] = 'Error ' . $_FILES['mkfile']['error'] . '. Make sure file size is under 1MB.';
-	} 
-	else 
-	{
-		$_SESSION['profileOps.php.msg'] = 'Error during upload';
-	}
+	$_SESSION['profileOps.php.msg'] = uploadImage($_FILES, 'image', $uploadfile);
 }
 else if( isset($_POST['edit_user_memb']) )
 {
