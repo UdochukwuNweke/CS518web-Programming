@@ -710,7 +710,7 @@ function getMsgDiv($post_id, $user_id, $fname, $lname, $datetime, $content, $par
 		echo '<input value="'. $channel_id . '" type="hidden" name="channel_id">';//used to know channel for a reply msg
 		
 		//echo '<input placeholder="Enter reply" type="text" name="post">';
-		echo '<textarea placeholder="Enter reply" name="post" style="margin-top: 0px; margin-bottom: 0px; height: 30px;"></textarea>';
+		echo '<textarea type="text" placeholder="Enter reply" name="post" style="margin-top: 0px; margin-bottom: 0px; height: 30px;"></textarea>';
 		echo '<input type="hidden" name="channel_state" value="' . $msgExtraParams['state'] . '">';
 		
 		//if( $user_id == $auth_user_id )
@@ -748,11 +748,11 @@ function getMsgDiv($post_id, $user_id, $fname, $lname, $datetime, $content, $par
 			echo '<input class="pure-button" type="hidden" name="reaction">';
 		}
 		
-		
-		echo '<input type="file" name="photo" id="upload-photo" style="opacity: 0;position: absolute;z-index: -1;" />';
+		echo '<input type="hidden" name="MAX_FILE_SIZE" value="1048576">';
+		echo '<input type="file" id="upload-photo1" name="mkfile" style="opacity: 0;position: absolute;z-index: -1;" />';
 		//generate reaction fields - end
 		echo '<br><input type="checkbox" name="pre_tag"> Pre-formated';
-		echo '<label for="upload-photo" style="cursor: pointer;">   &#128247; Upload image</label>';
+		echo '<label for="upload-photo1" style="cursor: pointer;">   &#128247; Upload image (1MB)</label>';
 	echo '</form>';
 	
 	echo '<br>';

@@ -77,6 +77,14 @@ function parsePost()
 	}
 
 	var_dump( $_POST );
+	if( $_FILES )
+	{
+		var_dump($_FILES);
+		$uploadfile = './postImgs/' . $_SESSION['authenticationFlag']['user_id'] . '.temp.jpg';
+		uploadImage($_FILES, 'image', $uploadfile);
+	}
+	return;
+	
 
 	if( isset($_POST['channel_state']) )
 	{
@@ -458,11 +466,17 @@ Direct Messages:
 		
 		if( $channelInfo['state'] == 'ACTIVE' )
 		{
-			echo '<form class="pure-form" action="main.php?channel=' . $channelInfo['channelName'] . '" method="post">';
+			echo '<form class="pure-form" enctype="multipart/form-data" action="main.php?channel=' . $channelInfo['channelName'] . '" method="post">';
 			echo '<fieldset>';
 			echo '<input type="hidden" name="channel_id" value="' . $channelInfo['channelId'] . '">';
-			echo '<input type="text" size="90%" name="post" placeholder="Enter message here">';
+			echo '<textarea type="text" size="90%" name="post" placeholder="Enter message here" style="margin-top: 0px; margin-bottom: 0px; width: 380px; height: 35px;"></textarea>';
 			echo '<input type="submit" class="pure-button pure-button-primary">';
+			echo '<br><input type="checkbox" name="pre_tag"> Pre-formated';
+			
+			echo '<input type="hidden" name="MAX_FILE_SIZE" value="1048576">';
+			echo '<input type="file" id="upload-photo" name="mkfile" style="opacity: 0;position: absolute;z-index: -1;" />';
+			echo '<label for="upload-photo" style="cursor: pointer;">   &#128247; Upload image (1MB)</label>';
+			
 			echo '</fieldset>';
 			echo '</form>';
 		}
