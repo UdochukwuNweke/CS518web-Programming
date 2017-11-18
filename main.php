@@ -357,21 +357,30 @@ function printChannelMsg($channelInfo, $msgExtraParams)
 	);
 }
 
-function printPagePanel($page = 1)
+function printPagePanel()
 {
 	$root = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+	$page = 1;
 	if( isset($_GET['page']) )
 	{
 		$root = str_replace('&page='.$_GET['page'], '', $root);
+		$page = $_GET['page'];
 	}
 
-	//print_r(pagination($page, 20));
-	
-	echo '<div style="text-align:center; font-weight: bold; font-size:14px; padding-bottom: 10px;">';
-        echo '<a href="' . $root . '&page=1">&nbsp;1&nbsp;</a>&nbsp;';
-        echo '<a href="' . $root . '&page=2">&nbsp;2&nbsp;</a>&nbsp;';
-        echo '<a href="' . $root . '&page=3">&nbsp;3&nbsp;</a>&nbsp;';
-    echo '</div>';
+	$pages = pagination($page, 20);
+	echo '<div style="text-align:center; font-weight: bold; font-size:16px; padding-bottom: 10px;">';
+	for($i = 0; $i<count($pages); $i++)
+	{
+		if( $pages[$i] == -1 )
+		{
+			echo '<span>...</span>';
+		}
+		else
+		{
+			echo '<a href="' . $root . '&page='. $pages[$i] . '">&nbsp;'. $pages[$i] .'&nbsp;</a>&nbsp;';
+		}
+	}
+	echo '</div>';	
 }
 
 //credit: https://gist.github.com/kottenator/9d936eb3e4e3c3e02598
@@ -404,7 +413,8 @@ function pagination($c, $m)
             } 
             else if ($range[$i] - $l !== 1) 
             {
-                array_push($rangeWithDots, '...');
+            	//-1 is used to mark ...
+                array_push($rangeWithDots, -1);
             }
         }
         
