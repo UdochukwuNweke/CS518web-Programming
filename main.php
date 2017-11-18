@@ -9,6 +9,7 @@ include('services.php');
 
 validatePost();
 authenticateUser();
+monitorURL();
 parsePost();
 
 /* 
@@ -57,7 +58,7 @@ function authenticateUser()
 				$newLocation = $newLocation . '?channel=' . $_GET['channel'];
 				if( isset($_GET['post']) )
 				{
-					$newLocation = $newLocation . '&post=' . $_GET['post'];
+					$newLocation .= '&post=' . $_GET['post'];
 				}
 			}
 
@@ -69,6 +70,24 @@ function authenticateUser()
 			$_SESSION['authenticationFlag'] = $userDetails;
 			unset($_SESSION['index.php.msg']);
 		}
+	}
+}
+
+function monitorURL()
+{
+	$shouldRedirectFlag = false;
+	$newLocation = $_SERVER['REQUEST_URI'];
+
+	if( isset($_GET['page']) === false )
+	{
+		$shouldRedirectFlag = true;
+		$newLocation .= '&page=1';
+	}
+
+	if( $shouldRedirectFlag == true )
+	{
+		header('Location: ' . $newLocation);	
+		exit;
 	}
 }
 
@@ -338,6 +357,64 @@ function printChannelMsg($channelInfo, $msgExtraParams)
 	);
 }
 
+function printPagePanel($page = 1)
+{
+	$root = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+	if( isset($_GET['page']) )
+	{
+		$root = str_replace('&page='.$_GET['page'], '', $root);
+	}
+
+	//print_r(pagination($page, 20));
+	
+	echo '<div style="text-align:center; font-weight: bold; font-size:14px; padding-bottom: 10px;">';
+        echo '<a href="' . $root . '&page=1">&nbsp;1&nbsp;</a>&nbsp;';
+        echo '<a href="' . $root . '&page=2">&nbsp;2&nbsp;</a>&nbsp;';
+        echo '<a href="' . $root . '&page=3">&nbsp;3&nbsp;</a>&nbsp;';
+    echo '</div>';
+}
+
+//credit: https://gist.github.com/kottenator/9d936eb3e4e3c3e02598
+function pagination($c, $m) 
+{
+    $current = $c;
+    $last = $m;
+    $delta = 2;
+    $left = $current - $delta;
+    $right = $current + $delta + 1;
+    $range = array();
+    $rangeWithDots = array();
+    $l = -1;
+
+    for ($i = 1; $i <= $last; $i++) 
+    {
+        if ($i == 1 || $i == $last || $i >= $left && $i < $right) 
+        {
+            array_push($range, $i);
+        }
+    }
+
+    for($i = 0; $i<count($range); $i++) 
+    {
+        if ($l != -1) 
+        {
+            if ($range[$i] - $l === 2) 
+            {
+                array_push($rangeWithDots, $l + 1);
+            } 
+            else if ($range[$i] - $l !== 1) 
+            {
+                array_push($rangeWithDots, '...');
+            }
+        }
+        
+        array_push($rangeWithDots, $range[$i]);
+        $l = $range[$i];
+    }
+
+    return $rangeWithDots;
+}
+
 ?>
 
 <html>
@@ -452,6 +529,7 @@ Direct Messages:
 <div class="main">	
 	
 	<?php
+		printPagePanel();
 		echo '<div id="infoArea">';
 			
 			$channelInfo = getCurChannel();
@@ -571,7 +649,6 @@ Direct Messages:
 		scroll(0,0);
 		console.log('\nscrollToTop()');
 	}
-	
 
 </script>
 </body>
