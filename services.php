@@ -171,6 +171,43 @@ function deletePost($post_id, $user_id)
 	return $hasRows;
 }
 
+
+function deleteReaction($reactionID)
+{
+	$hasRows = false;
+
+	try
+	{
+		$conn = new mysqli($GLOBALS['serverName'], $GLOBALS['dbUserName'], $GLOBALS['dbPassword'], $GLOBALS['dbname']);
+		// Check connection
+		if( $conn -> connect_error ) 
+		{
+			// consider logging error
+			echo 'Connection failed: ' . $conn -> connect_error;
+		} 
+		else
+		{
+			$sqlQuery = $conn -> prepare('DELETE FROM Reaction WHERE reaction_id=?');
+			$sqlQuery -> bind_param('i', $reactionID);
+
+			$sqlQuery -> execute();
+			if( $conn -> affected_rows !== 0 )
+			{
+				$hasRows = true;
+			}
+
+			$sqlQuery -> close();
+			$conn -> close();
+		}
+	}
+	catch(Exception $e) 
+	{
+		echo 'Message: ' . $e -> getMessage();
+	}
+
+	return $hasRows;
+}
+
 /*
  * Responsible for adding a post msg to the DB
  *
@@ -622,8 +659,38 @@ function genericGetAll($table, $optionalWhereClause='', $optionalSelect='*')
 	return $payload;
 }
 
-function getImgLinks($links)
+function genericQuery($sqlQuery)
 {
+	$payload = array();
+
+	try
+	{
+		$conn = new mysqli($GLOBALS['serverName'], $GLOBALS['dbUserName'], $GLOBALS['dbPassword'], $GLOBALS['dbname']);
+
+		$result = $conn -> query($sqlQuery);
+		//$payload = mysqli_fetch_all ($result, MYSQLI_ASSOC);
+		while( $row = $result->fetch_assoc() )
+		{
+			array_push($payload, $row);
+		}
+
+		$result -> close();
+
+	}
+	catch(Exception $e) 
+	{
+		echo 'Message: ' . $e -> getMessage();
+	}
+
+	return $payload;
+}
+
+
+
+
+function getImgLinksFromText($post)
+{
+	$links = getLinksFromText($post);
 	//https://stackoverflow.com/a/37274332
 	stream_context_set_default( [
 	    'ssl' => [
@@ -676,67 +743,40 @@ function getLinksFromText($post)
 	return $match[0]; 
 }
 
-function genericQuery($sqlQuery)
+function addImgLinksToPost($content, $links)
 {
-	$payload = array();
-
-	try
+	if( count($links) != 0 )
 	{
-		$conn = new mysqli($GLOBALS['serverName'], $GLOBALS['dbUserName'], $GLOBALS['dbPassword'], $GLOBALS['dbname']);
+		$content .= '<div><br>';	
+	}	
 
-		$result = $conn -> query($sqlQuery);
-		//$payload = mysqli_fetch_all ($result, MYSQLI_ASSOC);
-		while( $row = $result->fetch_assoc() )
+	for($i = 0; $i<count($links); $i++)
+	{
+		$imgTag = '<img src="' . $links[$i] . '" alt="postImg" class="postImg">';
+		if( strpos($content, $links[$i]) )
 		{
-			array_push($payload, $row);
+			$content = str_replace(
+				$links[$i], 
+				$imgTag, 
+				$content
+			);
 		}
-
-		$result -> close();
-
-	}
-	catch(Exception $e) 
-	{
-		echo 'Message: ' . $e -> getMessage();
-	}
-
-	return $payload;
-}
-
-function deleteReaction($reactionID)
-{
-	$hasRows = false;
-
-	try
-	{
-		$conn = new mysqli($GLOBALS['serverName'], $GLOBALS['dbUserName'], $GLOBALS['dbPassword'], $GLOBALS['dbname']);
-		// Check connection
-		if( $conn -> connect_error ) 
-		{
-			// consider logging error
-			echo 'Connection failed: ' . $conn -> connect_error;
-		} 
 		else
 		{
-			$sqlQuery = $conn -> prepare('DELETE FROM Reaction WHERE reaction_id=?');
-			$sqlQuery -> bind_param('i', $reactionID);
-
-			$sqlQuery -> execute();
-			if( $conn -> affected_rows !== 0 )
-			{
-				$hasRows = true;
-			}
-
-			$sqlQuery -> close();
-			$conn -> close();
+			$content .= $imgTag;
 		}
 	}
-	catch(Exception $e) 
-	{
-		echo 'Message: ' . $e -> getMessage();
-	}
 
-	return $hasRows;
+	if( count($links) != 0 )
+	{
+		$content .= '</div>';
+	}
+	
+	return $content;
 }
+
+
+
 
 function getMsgDiv($post_id, $user_id, $fname, $lname, $datetime, $content, $parent_id, $auth_user_id, $channel_id, $msgExtraParams)
 {

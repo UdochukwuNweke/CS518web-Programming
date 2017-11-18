@@ -6,6 +6,22 @@ error_reporting(E_ALL);
 
 include('services.php');
 
+/*
+$post = 'The quick brown fox jumped https://pbs.twimg.com/profile_images/694021299891343360/CVACQUXm_400x400.jpg, over the lazy http://php.net/manual/en/function.stream-context-create.php https://pbs.twimg.com/media/DO3SOJNX0AM0h_x.jpg';
+print_r(getImgLinksFromText($post));
+*/
+
+
+/*
+#SELECT * FROM Post LIMIT 10 OFFSET 0;
+$posts = genericQuery('SELECT * FROM Post WHERE parent_id=-1 LIMIT 10 OFFSET 20');
+for($i = 0; $i<count($posts); $i++)
+{
+	echo $posts[$i]['datetime'];
+	echo '<br>';
+}
+*/
+
 
 /*
 $channel_id = 3;

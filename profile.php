@@ -12,7 +12,6 @@
 	{
 		header('Location: profile.php?user=' . $_SESSION['authenticationFlag']['user_id'] );
 	}
-	
 ?>
 
 

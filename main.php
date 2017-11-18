@@ -11,8 +11,11 @@ validatePost();
 authenticateUser();
 parsePost();
 
-// http://www.cs.odu.edu/~jbrunelle/cs518/assignments/milestone1.html
-// credit to: http://www.phpsnips.com/4/Simple-User-Login#.VpkiUlMrKRt
+/* 
+to do:
+delete image after post is deleted
+upload image link
+*/
 
 function authenticateUser()
 {
@@ -77,14 +80,6 @@ function parsePost()
 	}
 
 	var_dump( $_POST );
-	if( $_FILES )
-	{
-		var_dump($_FILES);
-		$uploadfile = './postImgs/' . $_SESSION['authenticationFlag']['user_id'] . '.temp.jpg';
-		uploadImage($_FILES, 'image', $uploadfile);
-	}
-	return;
-	
 
 	if( isset($_POST['channel_state']) )
 	{
@@ -104,14 +99,37 @@ function parsePost()
 		if( $_SESSION['authenticationFlag']['role_type'] == 'ADMIN' )
 		{
 			$post_id = $_POST['post_id'];	
+			if( isset($_POST['post_img_id']) )
+			{
+				unlink($_POST['post_img_id']);
+			}
 			deletePost($post_id, $_POST['post_user_id']);
 		}
 	}
 	else if( isset($_POST['post']) )
 	{
 		$content = trim($_POST['post']);
-		if( strlen($content) !== 0 )
+		
+		//image upload - start
+		$imgLinks = array();
+		if( $_FILES )
 		{
+			$uploadfile = './postImgs/' . getKRandStr(10) . '.jpg';
+			if( uploadImage($_FILES, 'image', $uploadfile) == 'go' )
+			{
+				array_push($imgLinks, $uploadfile);
+			}
+		}
+
+		$imgLinks = array_merge( 
+			$imgLinks,
+			getImgLinksFromText($content)
+		);
+		$content = addImgLinksToPost($content, $imgLinks);
+		//image upload - end
+
+		if( strlen($content) !== 0 )
+		{	
 			//post at a channel
 			$channel_id = $_POST['channel_id'];
 			$parent_id = -1;
@@ -163,7 +181,12 @@ function focusOnPost($post_id)
 	if( isset($_GET['post']) === false )
 	{
 		//does not have &post= in URL
-		$newLocation = $_SERVER['REQUEST_URI'] . '&post=' . $post_id;
+		if( strlen($post_id) != 0 )
+		{
+			$post_id = '&post=' . $post_id;
+		}
+
+		$newLocation = $_SERVER['REQUEST_URI'] . $post_id;
 	}
 	else
 	{
@@ -324,7 +347,7 @@ function printChannelMsg($channelInfo, $msgExtraParams)
 	<link href="https://fonts.googleapis.com/css?family=Poiret+One" rel="stylesheet">
 	<link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
 </head>
-<body style="margin: 0; height: 100%; overflow: hidden;">
+<body style="margin: 0; height: 100%; overflow: hidden;" onload="main()">
 
 <div id="menuDiv" style="background-color: gray; padding: 10px 0px 10px 0px; border-radius: 0px;">
 	<table style="width: 100%;" align="center">
@@ -463,14 +486,13 @@ Direct Messages:
 		
 		echo '</div>';
 
-		
 		if( $channelInfo['state'] == 'ACTIVE' )
 		{
 			echo '<form class="pure-form" enctype="multipart/form-data" action="main.php?channel=' . $channelInfo['channelName'] . '" method="post">';
 			echo '<fieldset>';
 			echo '<input type="hidden" name="channel_id" value="' . $channelInfo['channelId'] . '">';
 			echo '<textarea type="text" size="90%" name="post" placeholder="Enter message here" style="margin-top: 0px; margin-bottom: 0px; width: 380px; height: 35px;"></textarea>';
-			echo '<input type="submit" class="pure-button pure-button-primary">';
+			echo '<input type="submit" value="post" class="pure-button pure-button-primary">';
 			echo '<br><input type="checkbox" name="pre_tag"> Pre-formated';
 			
 			echo '<input type="hidden" name="MAX_FILE_SIZE" value="1048576">';
@@ -498,6 +520,7 @@ Direct Messages:
 	
 	function main()
 	{	
+		addExtraDetailsToPost();
 	}
 
 	function replyCounterClick(post_id)
@@ -516,6 +539,39 @@ Direct Messages:
 			window.location.href = window.location.href.replace('post=' + uriParams.post, post_id);
 		}
 	}
+
+	function addExtraDetailsToPost()
+	{
+		var msgDivs = document.getElementsByClassName('msgArea');
+		for(var i=0; i<msgDivs.length; i++)
+		{
+			var imgFlag = msgDivs[i].getElementsByClassName('postImg');
+			var formDiv = msgDivs[i].getElementsByClassName('pure-form')[0];
+			
+			for(var j = 0; j<imgFlag.length; j++ )
+			{
+				var link = imgFlag[j]['src'].split('/Slack/postImgs/')[1];
+				
+				if( link != undefined )
+				{
+					var hidden = document.createElement('input');
+					hidden.type = 'hidden';
+					hidden.value = './postImgs/' + link;
+					hidden.name = 'post_img_id';
+
+					formDiv.appendChild(hidden);
+				}
+			}			
+		}
+	}
+
+	function scrollToTop()
+	{
+		/*page scrolls during file upload, this is a patch*/
+		scroll(0,0);
+		console.log('\nscrollToTop()');
+	}
+	
 
 </script>
 </body>
