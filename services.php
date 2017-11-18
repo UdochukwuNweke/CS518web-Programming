@@ -622,6 +622,86 @@ function genericGetAll($table, $optionalWhereClause='', $optionalSelect='*')
 	return $payload;
 }
 
+function getImgLinks($links)
+{
+	//https://stackoverflow.com/a/37274332
+	stream_context_set_default( [
+	    'ssl' => [
+	        'verify_peer' => false,
+	        'verify_peer_name' => false,
+	    ],
+	]);
+
+	$imgLinks = array();
+
+	for($i = 0; $i < count($links); $i++)
+	{
+		try
+		{
+			$response = get_headers( $links[$i] );
+			for($j = 0; $j<count($response); $j++)
+			{
+				$response[$j] = strtolower(trim($response[$j]));
+				if( strpos($response[$j], 'content-type:') === 0 )
+				{
+					$type = explode('content-type:', $response[$j]);
+					if( count($type) > 1 )
+					{
+						$type = explode('/', $type[1]);
+						if( count($type) > 0 )
+						{
+							if( trim($type[0]) == 'image' )
+							{								
+								array_push($imgLinks, trim($links[$i]));
+							}
+						}
+					}
+				}
+			}
+		}
+		catch(Exception $e) 
+		{
+
+		}
+		
+	}
+
+	return $imgLinks;
+}
+
+function getLinksFromText($post)
+{
+	//credit: https://stackoverflow.com/a/36564776
+	preg_match_all('#\bhttps?://[^,\s()<>]+(?:\([\w\d]+\)|([^,[:punct:]\s]|/))#', $post, $match);
+	return $match[0]; 
+}
+
+function genericQuery($sqlQuery)
+{
+	$payload = array();
+
+	try
+	{
+		$conn = new mysqli($GLOBALS['serverName'], $GLOBALS['dbUserName'], $GLOBALS['dbPassword'], $GLOBALS['dbname']);
+
+		$result = $conn -> query($sqlQuery);
+		//$payload = mysqli_fetch_all ($result, MYSQLI_ASSOC);
+		while( $row = $result->fetch_assoc() )
+		{
+			array_push($payload, $row);
+		}
+
+		$result -> close();
+
+	}
+	catch(Exception $e) 
+	{
+		echo 'Message: ' . $e -> getMessage();
+	}
+
+	return $payload;
+}
+
 function deleteReaction($reactionID)
 {
 	$hasRows = false;
@@ -687,21 +767,21 @@ function getMsgDiv($post_id, $user_id, $fname, $lname, $datetime, $content, $par
 	$avatar = './profileImgs/' . $user_id . '.jpg';
 	if( file_exists($avatar) )
 	{
-		echo '<img src="'. $avatar .'" alt="avatar" class="avatar">';	
+		echo '<img src="'. $avatar .'" alt="avatar" class="avatar">';
 	}
 	else
 	{
 		echo '<img src="https://www.w3schools.com/tags/smiley.gif" alt="avatar" class="avatar">';
 	}
-
 	echo '<strong>' . $fname . '<br>' . $lname . ' - ' . $post_id . ' </strong> <br>(' . $datetime . ')<br><br>';
 	
+	$content = '<div class="msgContent">' . $content . '</div>';
+
 	echo $content;
 	if( strpos($content, '<pre>') == -1 )
 	{
 		echo '<br><br>';
 	}
-	
 
 	echo '<br><input type="submit" onclick="replyCounterClick(' . $post_id . ')" class="pure-button" class="replyCounter" value="'. $replyCount . ' Replies"><br>';
 	echo '<form class="pure-form" enctype="multipart/form-data" method="post">';
@@ -749,7 +829,7 @@ function getMsgDiv($post_id, $user_id, $fname, $lname, $datetime, $content, $par
 		}
 		
 		echo '<input type="hidden" name="MAX_FILE_SIZE" value="1048576">';
-		echo '<input type="file" id="upload-photo1" name="mkfile" style="opacity: 0;position: absolute;z-index: -1;" />';
+		echo '<input onclick="scrollToTop()" type="file" id="upload-photo1" name="mkfile" style="opacity: 0;position: absolute;z-index: -1;" />';
 		//generate reaction fields - end
 		echo '<br><input type="checkbox" name="pre_tag"> Pre-formated';
 		echo '<label for="upload-photo1" style="cursor: pointer;">   &#128247; Upload image (1MB)</label>';
@@ -900,6 +980,24 @@ function uploadImage($files, $expectedType, $destName)
 	}
 
 	return $response;
+}
+
+function getKRandStr($k)
+{
+	$alpha = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+	$alpha = str_shuffle($alpha);
+	$randStr = '';
+
+	for($i = 0; $i<strlen($alpha); $i++)
+	{
+		$randStr .= $alpha[$i];
+		if( $i == $k-1 )
+		{
+			break;
+		}
+	}
+
+	return $randStr;
 }
 
 ?>
