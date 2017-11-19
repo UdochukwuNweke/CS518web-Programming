@@ -50,28 +50,6 @@
 
 	    		<h3> Profile Image </h3>
 				<?php
-					$avatar = './profileImgs/' . $_SESSION['authenticationFlag']['user_id'] . '.jpg';
-					if( file_exists($avatar) )
-					{
-						/*
-							echo '<div class="avatar" style="width: 200px; height: 200px;">';
-								echo '<img src="'. $avatar .'" alt="avatar" style="border-radius: 4px; max-width: 100%; max-height: 100%; margin: 0 auto;">';
-							echo '</div>';
-						*/
-						echo '<img src="'. $avatar .'" alt="avatar" class="avatar" style="width: 200px; height: 200px;">';	
-					}
-					else
-					{
-						echo '<img src="https://www.w3schools.com/tags/smiley.gif" alt="avatar" width="200" height="200" style="float: left; border-radius: 5px; border: 1px solid #999999;">';
-					}
-				?>
-			</div>
-	    </td>
-
-	    <td align="center">
-	    	<div style="padding: 10px 0px 0px 10px;width: 80%; height: 20%;">
-				
-				<?php 
 					if( isset($_SESSION['profileOps.php.msg']) )
 					{
 						if( $_SESSION['profileOps.php.msg'] == 'go' )
@@ -84,16 +62,68 @@
 							echo '<strong><p style="color: red">' . $_SESSION['profileOps.php.msg'] . '</p></strong>';
 						}
 					}
-				?>
 
+					$avatar = './profileImgs/' . $_SESSION['authenticationFlag']['user_id'] . '.jpg';
+					if( file_exists($avatar) )
+					{
+						echo '<img src="'. $avatar .'" alt="avatar" class="avatar" style="float: inherit; width: 200px; height: 200px;">';	
+					}
+					else
+					{
+						echo '<img src="https://www.w3schools.com/tags/smiley.gif" alt="avatar" width="200" height="200" style="border-radius: 5px; border: 1px solid #999999;">';
+					}
+				?>
 				<form class="pure-form" action="profileOps.php" enctype="multipart/form-data" method="post">
 				    <fieldset>
-				    	<input type="hidden" name="MAX_FILE_SIZE" value="1048576">
-				    	<input class="pure-button pure-button-primary" name="mkfile" type="file">
-				    	<button type="submit" class="pure-button">Upload new image</button>
+				    	<input type="file" name="mkfile" style="opacity: 0;position: absolute;z-index: -1;"/>
 				    	
+				    	<label for="upload-photo1" style="cursor: pointer;">   &#128247; Upload image (1MB)</label>
+				    	<input type="hidden" name="MAX_FILE_SIZE" value="1048576">
+				    	
+				    	<button type="submit" class="pure-button">Upload new image</button>
 					</fieldset>
 				</form>
+
+			</div>
+	    </td>
+
+	    <td>
+	    	<div style="padding: 10px 0px 0px 10px;width: 80%; height: 20%;">
+				
+				<h3 align="center"> Reputation </h3>
+				
+				<ul>
+		  			<?php
+
+		  				function getCount($table)
+		  				{
+		  					$query = 'SELECT count(*) count FROM '. $table . ' WHERE user_id=' . $_SESSION['authenticationFlag']['user_id'];
+							$response = genericQuery($query);
+							
+							if( count($response) != 0 )
+							{
+								if( isset($response[0]['count']) )
+								{
+									return $response[0]['count'];
+								}
+							}
+							
+							return 0;
+		  				}
+
+		  				function getReactionCount()
+		  				{
+
+		  				}
+		  				
+		  				//$_SESSION['authenticationFlag'];
+
+		  				echo '<li><strong>Public channel count: </strong>' . count($_SESSION['channels']['pub-memb']) . '</li>';
+		  				echo '<li><strong>Private channel count: </strong>' . count($_SESSION['channels']['priv-memb']) . '</li>';
+		  				echo '<li><strong>Post count: </strong>' . getCount('Post') . '</li>';
+		  				echo '<li><strong>Reaction count: </strong>' . getCount('Reaction') . '</li>';
+		  			?>
+				</ul>
 
 			</div>
 	    </td> 
@@ -123,10 +153,8 @@
 
 	  	<td align="center">
 	  		<div style="padding: 10px 0px 0px 10px; width:80%; height: 20%;">
-			
-			<input type="checkbox" name="twoFA">
-	  		Two-Factor Authentication
-
+				<input type="checkbox" name="twoFA">
+	  			Two-Factor Authentication
 			</div>
 	  	</td>
 
