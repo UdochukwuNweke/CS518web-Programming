@@ -677,6 +677,7 @@ Direct Messages:
 
 	function continuousUpdate(payload)
 	{
+		return;
 		console.log('\ncontinuousUpdate(), payload:', payload);
 
 		httpPost({'getPost': payload}, './services.php', function(response)
