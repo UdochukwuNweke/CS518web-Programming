@@ -67,6 +67,10 @@ function authenticateUser()
 		}
 		else
 		{
+			$_SESSION['config'] = array(
+					'history_size' => 10,
+					'paginationSize' => 10,
+				);
 			$_SESSION['authenticationFlag'] = $userDetails;
 			unset($_SESSION['index.php.msg']);
 		}
@@ -98,6 +102,7 @@ function parsePost()
 		return;
 	}
 
+	echo 'FOR DEBUGGING: <br>';
 	var_dump( $_POST );
 
 	if( isset($_POST['channel_state']) )
@@ -525,19 +530,26 @@ Direct Messages:
 	
 	<?php
 		$msgExtraParams = array();
-		$msgExtraParams['page_size'] = 4;
+		$msgExtraParams['page_size'] = $_SESSION['config']['paginationSize'];
 		if( isset($_GET['page']) )
 		{
 			$msgExtraParams['page'] = $_GET['page'];
+			
+			if( $msgExtraParams['page'] == $_SESSION['config']['history_size'] && $msgExtraParams['page'] < 47 )
+			{
+				$_SESSION['config']['history_size'] += 4;
+			}
 		}
 		else
 		{	
 			$msgExtraParams['page'] = 1;
 		}
 
-		printPagePanel($msgExtraParams['page_size']);
+		printPagePanel( $_SESSION['config']['history_size'] );
+		
 		echo '<div id="infoArea">';
-			
+		echo '<div id="msgAreaContainer">';
+
 			$channelInfo = getCurChannel();
 			$reactionTypes = genericGetAll('Reaction_Type');
 
@@ -566,7 +578,8 @@ Direct Messages:
 				echo '<br><br>';
 				echo '<hr class="style13">';
 			}
-		
+
+		echo '</div>';
 		echo '</div>';
 
 		if( $channelInfo['state'] == 'ACTIVE' )
@@ -598,6 +611,7 @@ Direct Messages:
 	
 	function main()
 	{	
+		console.log('\nmain()');
 		addExtraDetailsToPost();
 	}
 
@@ -642,12 +656,16 @@ Direct Messages:
 			}			
 		}
 
+
+
 		var timestamps = document.getElementsByClassName('timestamp');
 		for(var i=0; i<timestamps.length; i++)
 		{
 			var time = timestamps[i].innerText;
 			timestamps[i].innerText = moment(timestamps[i].innerText).fromNow() + ' (' + time + ')';
 		}
+
+		//msgDivs[0].innerHTML = '<h1>HELLO</h1>';
 	}
 
 	function scrollToTop()
@@ -657,6 +675,63 @@ Direct Messages:
 		console.log('\nscrollToTop()');
 	}
 
+	function continuousUpdate(payload)
+	{
+		console.log('\ncontinuousUpdate(), payload:', payload);
+
+		httpPost({'getPost': payload}, './services.php', function(response)
+	    {
+	        response = JSON.parse(response);
+	        if( response.response )
+	        {	
+	        	var msgAreaContainer = document.getElementById('msgAreaContainer');
+	        	msgAreaContainer.innerHTML = response.response;
+	        }
+	    });
+
+		setTimeout(
+			function()
+			{ 
+				continuousUpdate(payload);
+			}
+		, 3000);
+	}
+
+	function httpPost(obj, postURI, callback)
+	{
+	    var xhr = new XMLHttpRequest();
+	    xhr.open('POST', postURI);
+	    xhr.setRequestHeader('Content-Type', 'application/json');
+
+	    xhr.onreadystatechange = function () 
+	    {
+	        if (xhr.readyState == 4 && xhr.status == 200) 
+	        {
+	            callback(xhr.responseText);
+	        }
+	    }
+
+	    xhr.onerror = function()
+	    {
+	        console.log('\thttpPost(): Network error.');
+	        callback({});
+	    };
+
+	    xhr.send( JSON.stringify(obj) );
+	}
+
 </script>
+
+	<?php
+
+		$payload = array(
+			'channel_id' => $channelInfo['channelId'],
+			'auth_user_id' => $_SESSION['authenticationFlag']['user_id'],
+			'parent_id' => $channelInfo['post'],
+			'msg_extra_params' => $msgExtraParams
+		);
+		echo '<script>continuousUpdate(' . json_encode($payload) . ')</script>';
+		
+	?>
 </body>
 </html>

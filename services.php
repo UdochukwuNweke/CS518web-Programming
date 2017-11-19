@@ -3,7 +3,7 @@
 date_default_timezone_set('America/New_York');
 
 $serverName = 'localhost';
-$dbUserName = 'unweke';
+$dbUserName = 'admin';
 $dbPassword = 'M0n@rch$';
 $dbname = 'CS518DB';
 
@@ -50,6 +50,43 @@ CS518 Tables
 		user_id
 		role_type
 */
+
+//web service - start
+if( $_SERVER['REQUEST_METHOD'] == 'POST' )
+{
+	$request = file_get_contents('php://input');
+	$request = json_decode($request, true);
+	
+	if( isset($request['getPost']) )
+	{
+		processGetPostWebServiceRequest($request['getPost']);
+	}
+	else
+	{
+		echo json_encode(new stdClass());
+	}
+}
+
+function processGetPostWebServiceRequest($request)
+{
+	$response = array(
+		'request' => $request
+	);
+	
+	ob_start();
+	getMessages(
+		$request['channel_id'],
+		$request['auth_user_id'],
+		$request['parent_id'],
+		$request['msg_extra_params']
+	);
+
+	$output = ob_get_clean();
+	$response['response'] = $output;
+
+	echo json_encode($response);
+}
+//web service - end
 
 /*https://www.w3schools.com/php/php_form_validation.asp*/
 function sanitizeInput($data)
@@ -945,9 +982,6 @@ function getSingleMessage($post_id, $channel_id, $auth_user_id, $msgExtraParams=
 		$max = $msgExtraParams['max'];
 	}
 
-	//$pagination = '';
-	//setPagination( $msgExtraParams['page_size'], $msgExtraParams['page'] );
-
 	$posts = genericGetAll('Post', 'WHERE post_id=' . $post_id);
 	getHTMLForMessages($posts, $channel_id, $auth_user_id, $max, $msgExtraParams);
 }
@@ -972,6 +1006,15 @@ function getMessages($channel_id, $auth_user_id, $parent_id=-1, $msgExtraParams=
 	//$posts = genericGetAll('Post', $orderbyClause . 'WHERE channel_id=' . $channel_id  . ' AND ' . 'parent_id=' . $parent_id);
 	$posts = genericQuery($query);
 	getHTMLForMessages($posts, $channel_id, $auth_user_id, $max, $msgExtraParams);
+
+	if( count($posts) == 0 )
+	{
+		return false;
+	}
+	else
+	{
+		return true;
+	}
 }
 
 function getHTMLForChannel($channel, $linkFlag=true)
