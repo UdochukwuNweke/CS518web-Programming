@@ -776,8 +776,6 @@ function addImgLinksToPost($content, $links)
 }
 
 
-
-
 function getMsgDiv($post_id, $user_id, $fname, $lname, $datetime, $content, $parent_id, $auth_user_id, $channel_id, $msgExtraParams)
 {
 	$replyCount = count(genericGetAll('Post', 'WHERE parent_id=' . $post_id));
@@ -813,7 +811,7 @@ function getMsgDiv($post_id, $user_id, $fname, $lname, $datetime, $content, $par
 	{
 		echo '<img src="https://www.w3schools.com/tags/smiley.gif" alt="avatar" class="avatar">';
 	}
-	echo '<strong>' . $fname . '<br>' . $lname . ' - ' . $post_id . ' </strong> <br>(' . $datetime . ')<br><br>';
+	echo '<strong>' . $fname . '<br>' . $lname . ' - ' . $post_id . ' </strong> <br><span class="timestamp">' . $datetime . '</span><br><br>';
 	
 	$content = '<div class="msgContent">' . $content . '</div>';
 
@@ -882,6 +880,31 @@ function getMsgDiv($post_id, $user_id, $fname, $lname, $datetime, $content, $par
 
 function getHTMLForMessages($posts, $channel_id, $auth_user_id, $max=0, $msgExtraParams=array())
 {	
+	for($i = 0; $i < count($posts); $i++)
+	{
+		getMsgDiv(
+			$posts[$i]['post_id'],
+			$posts[$i]['user_id'],
+			$posts[$i]['fname'],
+			$posts[$i]['lname'],
+			$posts[$i]['datetime'],
+			$posts[$i]['content'],
+			$posts[$i]['parent_id'],
+			$auth_user_id,
+			$channel_id,
+			$msgExtraParams
+		);
+
+		if( $i+1 === $max )
+		{
+			break;
+		}
+	}
+}
+
+//delete post pagination complete
+function getHTMLForMessages_old($posts, $channel_id, $auth_user_id, $max=0, $msgExtraParams=array())
+{	
 	$index = 1;
 
 	for($i = count($posts)-1; $i !== -1 ; $i--)
@@ -908,6 +931,12 @@ function getHTMLForMessages($posts, $channel_id, $auth_user_id, $max=0, $msgExtr
 	}
 }
 
+function setPagination($limit, $offset)
+{
+	$offset = ($offset - 1) * $limit;
+	return " LIMIT $limit OFFSET $offset";
+}
+
 function getSingleMessage($post_id, $channel_id, $auth_user_id, $msgExtraParams=array())
 {
 	$max = 0;
@@ -915,6 +944,9 @@ function getSingleMessage($post_id, $channel_id, $auth_user_id, $msgExtraParams=
 	{
 		$max = $msgExtraParams['max'];
 	}
+
+	//$pagination = '';
+	//setPagination( $msgExtraParams['page_size'], $msgExtraParams['page'] );
 
 	$posts = genericGetAll('Post', 'WHERE post_id=' . $post_id);
 	getHTMLForMessages($posts, $channel_id, $auth_user_id, $max, $msgExtraParams);
@@ -928,8 +960,17 @@ function getMessages($channel_id, $auth_user_id, $parent_id=-1, $msgExtraParams=
 		$max = $msgExtraParams['max'];
 	}
 
-	//echo 'To get msges for channel: ' . $channel_id . '<br><br>';
-	$posts = genericGetAll('Post', 'WHERE channel_id=' . $channel_id  .' AND ' . 'parent_id=' . $parent_id);
+	
+	$pagination = setPagination( $msgExtraParams['page_size'], $msgExtraParams['page'] );
+	$query = 'SELECT * FROM Post' . 
+	' WHERE channel_id=' . $channel_id  
+	. ' AND ' . 'parent_id=' . $parent_id 
+	. ' ORDER BY post_id DESC'
+	. $pagination
+	;	
+	
+	//$posts = genericGetAll('Post', $orderbyClause . 'WHERE channel_id=' . $channel_id  . ' AND ' . 'parent_id=' . $parent_id);
+	$posts = genericQuery($query);
 	getHTMLForMessages($posts, $channel_id, $auth_user_id, $max, $msgExtraParams);
 }
 

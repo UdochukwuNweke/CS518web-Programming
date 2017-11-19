@@ -87,7 +87,7 @@ function monitorURL()
 	if( $shouldRedirectFlag == true )
 	{
 		header('Location: ' . $newLocation);	
-		exit;
+		//exit;
 	}
 }
 
@@ -357,7 +357,7 @@ function printChannelMsg($channelInfo, $msgExtraParams)
 	);
 }
 
-function printPagePanel()
+function printPagePanel($maxPageSize)
 {
 	$root = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
 	$page = 1;
@@ -367,7 +367,7 @@ function printPagePanel()
 		$page = $_GET['page'];
 	}
 
-	$pages = pagination($page, 20);
+	$pages = pagination($page, $maxPageSize);
 	echo '<div style="text-align:center; font-weight: bold; font-size:16px; padding-bottom: 10px;">';
 	for($i = 0; $i<count($pages); $i++)
 	{
@@ -430,6 +430,8 @@ function pagination($c, $m)
 <html>
 <head>
 	<script src="common.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.19.2/moment.min.js"></script>
+
 	<link rel="stylesheet" type="text/css" href="style.css">
 	<link href="https://fonts.googleapis.com/css?family=Poiret+One" rel="stylesheet">
 	<link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
@@ -496,24 +498,7 @@ Channels:
 	$_SESSION['channels']['pub-memb'] = $channelPartition['pub-memb'];
 	$_SESSION['channels']['priv-memb'] = $channelPartition['priv-memb'];
 	$_SESSION['channels']['pub-non-memb'] = $channelPartition['pub-non-memb'];
-	
 
-	//patch:
-	/*
-		//Delete post testing all aspects of channel visibility
-		if( count($channels) !== 0 )
-		{
-			echo '<br>';
-			for($i = 0; $i < count($channels); $i++)
-			{
-				//create key value pair with channel name as key and channel id as value
-				$_SESSION['channels'][$channels[$i]['name']] = $channels[$i]['channel_id'];
-				echo '<a style="color: inherit; text-decoration: none;" href="?channel=' . $channels[$i]['name'] . '"> # ' . $channels[$i]['name'] . '</a> <br>';
-			}
-			echo '<a style="color: inherit; text-decoration: none;" href="./new.php"> + New Channel</a> <br>';
-			echo '<br>';
-		}
-	*/
 ?>
 
 
@@ -539,13 +524,23 @@ Direct Messages:
 <div class="main">	
 	
 	<?php
-		printPagePanel();
+		$msgExtraParams = array();
+		$msgExtraParams['page_size'] = 4;
+		if( isset($_GET['page']) )
+		{
+			$msgExtraParams['page'] = $_GET['page'];
+		}
+		else
+		{	
+			$msgExtraParams['page'] = 1;
+		}
+
+		printPagePanel($msgExtraParams['page_size']);
 		echo '<div id="infoArea">';
 			
 			$channelInfo = getCurChannel();
 			$reactionTypes = genericGetAll('Reaction_Type');
 
-			$msgExtraParams = array();
 			$msgExtraParams['reactionTypes'] = $reactionTypes;
 			$msgExtraParams['role_type'] = $_SESSION['authenticationFlag']['role_type'];
 			$msgExtraParams['state'] = $channelInfo['state'];
@@ -598,11 +593,6 @@ Direct Messages:
 	
 </div>
 
-<!--
-<div class="nextMain">
-	<h1>Next</h1>
-</div>
--->
 
 <script type="text/javascript">
 	
@@ -650,6 +640,13 @@ Direct Messages:
 					formDiv.appendChild(hidden);
 				}
 			}			
+		}
+
+		var timestamps = document.getElementsByClassName('timestamp');
+		for(var i=0; i<timestamps.length; i++)
+		{
+			var time = timestamps[i].innerText;
+			timestamps[i].innerText = moment(timestamps[i].innerText).fromNow() + ' (' + time + ')';
 		}
 	}
 
