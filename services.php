@@ -74,11 +74,20 @@ function processGetPostWebServiceRequest($request)
 	);
 	
 	ob_start();
-	getMessages(
+	
+	/*getMessages(
 		$request['channel_id'],
 		$request['auth_user_id'],
 		$request['parent_id'],
 		$request['msg_extra_params']
+	);*/
+
+	printChannelMsg(
+		$request['channel_info'], 
+		$request['msg_extra_params'],
+		$request['user_id'],
+		$request['fname'],
+		$request['lname'] 
 	);
 
 	$output = ob_get_clean();
@@ -848,7 +857,7 @@ function getMsgDiv($post_id, $user_id, $fname, $lname, $datetime, $content, $par
 	{
 		echo '<img src="https://www.w3schools.com/tags/smiley.gif" alt="avatar" class="avatar">';
 	}
-	echo '<strong>' . $fname . '<br>' . $lname . ' - ' . $post_id . ' </strong> <br><span class="timestamp">' . $datetime . '</span><br><br>';
+	echo '<strong>' . $fname . '<br>' . $lname . ' - ' . $post_id . ' </strong> <br><span value="' . $datetime . '" class="timestamp">' . $datetime . '</span><br><br>';
 	
 	$content = '<div class="msgContent">' . $content . '</div>';
 
@@ -858,7 +867,7 @@ function getMsgDiv($post_id, $user_id, $fname, $lname, $datetime, $content, $par
 		echo '<br><br>';
 	}
 
-	echo '<br><input type="submit" onclick="replyCounterClick(' . $post_id . ')" class="pure-button" class="replyCounter" value="'. $replyCount . ' Replies"><br>';
+	echo '<br><input type="submit" onclick="replyCounterClick(' . $post_id . ')" class="pure-button replyInputCounter" class="replyCounter" value="'. $replyCount . ' Replies"><br>';
 	echo '<form class="pure-form" enctype="multipart/form-data" method="post">';
 		echo '<input value="'. $post_id . '" type="hidden" name="post_id">';//used for knowing post to delete
 		echo '<input value="'. $parent_id . '" type="hidden" name="parent_id">';//used to show if this msg is a reply
@@ -892,11 +901,11 @@ function getMsgDiv($post_id, $user_id, $fname, $lname, $datetime, $content, $par
 
 				if( isset($reactionDetails[$reacType['reaction_type_id']]) )
 				{
-					echo '<input class="pure-button" type="submit" value="' . $reacType['emoji'] . ': ' . count($reactionDetails[$reacType['reaction_type_id']]) . '" name="reaction-' . $reacType['reaction_type_id'] . '">';
+					echo '<input class="pure-button reaction-input" type="submit" value="' . $reacType['emoji'] . ': ' . count($reactionDetails[$reacType['reaction_type_id']]) . '" name="reaction-' . $reacType['reaction_type_id'] . '">';
 				}
 				else
 				{
-					echo '<input class="pure-button" type="submit" value="' . $reacType['emoji'] . ': 0" name="reaction-' . $reacType['reaction_type_id'] . '">';
+					echo '<input class="pure-button reaction-input" type="submit" value="' . $reacType['emoji'] . ': 0" name="reaction-' . $reacType['reaction_type_id'] . '">';
 				}
 			}
 
@@ -939,35 +948,6 @@ function getHTMLForMessages($posts, $channel_id, $auth_user_id, $max=0, $msgExtr
 	}
 }
 
-//delete post pagination complete
-function getHTMLForMessages_old($posts, $channel_id, $auth_user_id, $max=0, $msgExtraParams=array())
-{	
-	$index = 1;
-
-	for($i = count($posts)-1; $i !== -1 ; $i--)
-	{
-		getMsgDiv(
-			$posts[$i]['post_id'],
-			$posts[$i]['user_id'],
-			$posts[$i]['fname'],
-			$posts[$i]['lname'],
-			$posts[$i]['datetime'],
-			$posts[$i]['content'],
-			$posts[$i]['parent_id'],
-			$auth_user_id,
-			$channel_id,
-			$msgExtraParams
-		);
-
-		if( $index === $max )
-		{
-			break;
-		}
-
-		$index = $index + 1;
-	}
-}
-
 function setPagination($limit, $offset)
 {
 	$offset = ($offset - 1) * $limit;
@@ -984,6 +964,40 @@ function getSingleMessage($post_id, $channel_id, $auth_user_id, $msgExtraParams=
 
 	$posts = genericGetAll('Post', 'WHERE post_id=' . $post_id);
 	getHTMLForMessages($posts, $channel_id, $auth_user_id, $max, $msgExtraParams);
+}
+
+function printChannelMsg($channelInfo, $msgExtraParams, $user_id, $fname, $lname)
+{
+	$threadFlag = '';
+	if( $channelInfo['post'] != -1 )
+	{
+		$threadFlag = ' (Replies to post: ' . $channelInfo['post'] . ')';
+	}
+
+	echo '<h3>' . $fname . ' ' . $lname . ' @ ' . $channelInfo['channelName'] . $threadFlag . '</h3>';
+
+	if( $channelInfo['post'] != -1 )
+	{
+		//extract parent message which was clicked
+		$msgExtraParams['max'] = 1;
+		getSingleMessage(
+			$channelInfo['post'], 
+			$channelInfo['channelId'], 
+			$user_id, 
+			$msgExtraParams
+		);
+	}
+
+	echo '<br><br>';
+	echo '<hr class="style13">';
+
+	$msgExtraParams['max'] = 0;
+	getMessages( 
+		$channelInfo['channelId'], 
+		$user_id,
+		$channelInfo['post'],
+		$msgExtraParams
+	);
 }
 
 function getMessages($channel_id, $auth_user_id, $parent_id=-1, $msgExtraParams=array())

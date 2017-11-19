@@ -328,40 +328,6 @@ function getChannelPartitions($allChannels, $memberChannels)
 	return $channelPartition;
 }
 
-function printChannelMsg($channelInfo, $msgExtraParams)
-{
-	$threadFlag = '';
-	if( $channelInfo['post'] != -1 )
-	{
-		$threadFlag = ' (Replies to post: ' . $channelInfo['post'] . ')';
-	}
-
-	echo '<h3>' . $_SESSION['authenticationFlag']['fname'] . ' ' . $_SESSION['authenticationFlag']['lname'] . ' @ ' . $channelInfo['channelName'] . $threadFlag . '</h3>';
-
-	if( $channelInfo['post'] != -1 )
-	{
-		//extract parent message which was clicked
-		$msgExtraParams['max'] = 1;
-		getSingleMessage(
-			$channelInfo['post'], 
-			$channelInfo['channelId'], 
-			$_SESSION['authenticationFlag']['user_id'], 
-			$msgExtraParams
-		);
-	}
-
-	echo '<br><br>';
-	echo '<hr class="style13">';
-
-	$msgExtraParams['max'] = 0;
-	getMessages( 
-		$channelInfo['channelId'], 
-		$_SESSION['authenticationFlag']['user_id'],
-		$channelInfo['post'],
-		$msgExtraParams
-	);
-}
-
 function printPagePanel($maxPageSize)
 {
 	$root = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
@@ -373,7 +339,7 @@ function printPagePanel($maxPageSize)
 	}
 
 	$pages = pagination($page, $maxPageSize);
-	echo '<div style="text-align:center; font-weight: bold; font-size:16px; padding-bottom: 10px;">';
+	echo '<div style="text-align:center; font-weight: bold; font-size:16px; padding-bottom: 5px;">';
 	for($i = 0; $i<count($pages); $i++)
 	{
 		if( $pages[$i] == -1 )
@@ -559,7 +525,13 @@ Direct Messages:
 
 			if( isset($_GET['channel']) )
 			{
-				printChannelMsg($channelInfo, $msgExtraParams);
+				printChannelMsg(
+					$channelInfo, 
+					$msgExtraParams, 
+					$_SESSION['authenticationFlag']['user_id'],
+					$_SESSION['authenticationFlag']['fname'],
+					$_SESSION['authenticationFlag']['lname']
+				);
 			}
 			else if( isset($_GET['user']) )
 			{
@@ -661,11 +633,9 @@ Direct Messages:
 		var timestamps = document.getElementsByClassName('timestamp');
 		for(var i=0; i<timestamps.length; i++)
 		{
-			var time = timestamps[i].innerText;
-			timestamps[i].innerText = moment(timestamps[i].innerText).fromNow() + ' (' + time + ')';
+			var time = timestamps[i].getAttribute('value');
+			timestamps[i].innerText = moment(time).fromNow() + ' (' + time + ')';
 		}
-
-		//msgDivs[0].innerHTML = '<h1>HELLO</h1>';
 	}
 
 	function scrollToTop()
@@ -675,27 +645,119 @@ Direct Messages:
 		console.log('\nscrollToTop()');
 	}
 
+	function selectiveRefreshSingleMsg(singleOldMsg, newMsgAreaCon)
+	{
+		for(var i = 0; i<newMsgAreaCon.length; i++)
+		{
+			if( newMsgAreaCon[i].getAttribute('id') == singleOldMsg.getAttribute('id') )
+			{
+				//update time is not needed because time of post is fixed
+				singleOldMsg.getElementsByClassName('replyInputCounter')[0].value = newMsgAreaCon[i].getElementsByClassName('replyInputCounter')[0].value;
+				
+
+				var oldReactionInputs = singleOldMsg.getElementsByClassName('reaction-input');
+				var newReactionInputs = newMsgAreaCon[i].getElementsByClassName('reaction-input');
+				if( oldReactionInputs.length == newReactionInputs.length )
+				{
+					for(var j = 0; j<oldReactionInputs.length; j++)
+					{
+						oldReactionInputs[j].value = newReactionInputs[j].value;
+					}
+				}
+				
+				break;
+			}
+		}
+	}
+
+	function refreshMsgArea(oldMsgAreaCon, newMsgAreaCon)
+	{
+		if( oldMsgAreaCon.length == 0 )
+		{
+			return;
+		}
+
+		var htmlObject = document.createElement('div');
+		htmlObject.innerHTML = newMsgAreaCon;	
+		newMsgAreaCon = htmlObject.getElementsByClassName('msgArea');
+		
+		//add new msgs - start
+		var newMsgs = [];
+		for(var i=0; i<newMsgAreaCon.length; i++)
+		{
+			var breakFlag = false;
+			for(var j=0; j<oldMsgAreaCon.length; j++)
+			{
+				if( newMsgAreaCon[i].getAttribute('id') == oldMsgAreaCon[j].getAttribute('id') )
+				{
+					breakFlag = true;
+					break;
+				}
+			}
+
+			if( breakFlag == true )
+			{
+				//there is a match, so rest will match
+				break;
+			}
+			else
+			{
+				newMsgs.push( newMsgAreaCon[i] );
+			}
+		}
+		
+		for(var i=0; i<newMsgs.length; i++)
+		{
+			//add new to top
+			oldMsgAreaCon[0].parentNode.insertBefore(newMsgs[i], oldMsgAreaCon[0]);
+			console.log('skip refreshing new:', newMsgs[i]['id']);
+			//remove last from bottom
+			oldMsgAreaCon[0].parentNode.removeChild( oldMsgAreaCon[oldMsgAreaCon.length-1] );
+		}
+		//add new msgs - end
+
+		
+		//update old items
+		//newMsg.length is where old begins
+		for(var i = newMsgs.length; i<oldMsgAreaCon.length; i++)
+		{
+			selectiveRefreshSingleMsg( oldMsgAreaCon[i], newMsgAreaCon );
+		}
+	}
+
 	function continuousUpdate(payload)
 	{
-		return;
+		
 		console.log('\ncontinuousUpdate(), payload:', payload);
 
 		httpPost({'getPost': payload}, './services.php', function(response)
 	    {
+	    	//console.log(response);
 	        response = JSON.parse(response);
 	        if( response.response )
 	        {	
-	        	var msgAreaContainer = document.getElementById('msgAreaContainer');
-	        	msgAreaContainer.innerHTML = response.response;
+	        	var oldMsgAreaCon = document.getElementsByClassName('msgArea');
+	        	refreshMsgArea(oldMsgAreaCon, response.response);
+				addExtraDetailsToPost();	        	
+
+				//to drastic a change
+	        	//msgAreaContainer.innerHTML = response.response;
 	        }
 	    });
 
+		
 		setTimeout(
 			function()
 			{ 
 				continuousUpdate(payload);
 			}
 		, 3000);
+		
+	}
+
+	function genericMsgAct(activity)
+	{
+		console.log('\nmouseOverText():', activity);
 	}
 
 	function httpPost(obj, postURI, callback)
@@ -726,10 +788,11 @@ Direct Messages:
 	<?php
 
 		$payload = array(
-			'channel_id' => $channelInfo['channelId'],
-			'auth_user_id' => $_SESSION['authenticationFlag']['user_id'],
-			'parent_id' => $channelInfo['post'],
-			'msg_extra_params' => $msgExtraParams
+			'channel_info' => $channelInfo,
+			'msg_extra_params' => $msgExtraParams,
+			'user_id' => $_SESSION['authenticationFlag']['user_id'],
+			'fname' => $_SESSION['authenticationFlag']['fname'],
+			'lname' => $_SESSION['authenticationFlag']['lname']
 		);
 		echo '<script>continuousUpdate(' . json_encode($payload) . ')</script>';
 		
