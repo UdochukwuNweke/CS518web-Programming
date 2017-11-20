@@ -75,14 +75,14 @@
 				?>
 				<form class="pure-form" action="profileOps.php" enctype="multipart/form-data" method="post">
 				    <fieldset>
-				    	<input type="file" name="mkfile" style="opacity: 0;position: absolute;z-index: -1;"/>
-				    	
-				    	<label for="upload-photo1" style="cursor: pointer;">   &#128247; Upload image (1MB)</label>
+				    	<input type="file" id="upload-photo" name="mkfile" style="opacity: 0;position: absolute;z-index: -1;"/>
+				    	<label for="upload-photo" style="cursor: pointer;">   &#128247; Upload image (1MB)</label>
+
 				    	<input type="hidden" name="MAX_FILE_SIZE" value="1048576">
-				    	
 				    	<button type="submit" class="pure-button">Upload new image</button>
 					</fieldset>
 				</form>
+
 
 			</div>
 	    </td>
@@ -136,8 +136,6 @@
 							echo '</ol>';
 		  				}
 		  				
-		  				//$_SESSION['authenticationFlag'];
-
 		  				echo '<li><strong>Public channel count: </strong>' . count($_SESSION['channels']['pub-memb']) . '</li>';
 		  				echo '<li><strong>Private channel count: </strong>' . count($_SESSION['channels']['priv-memb']) . '</li>';
 		  				echo '<li><strong>Post count: </strong>' . getCount('Post') . '</li>';
@@ -342,12 +340,13 @@
 	  		<div style="padding: 10px 0px 0px 10px; width:80%; height: 20%;">
 
 	  			<h3> Search User Profiles </h3>
+	  			<h4 id="hitCount"></h4>
 	  			<form class="pure-form">
 				    <fieldset>
 				        <legend></legend>
 				        
 				        <?php
-							echo '<input onkeyup="searchForUser(this)" name="email" type="text" placeholder="firstname lastname">';
+							echo '<input onkeyup="searchForUser(this, ' . $_SESSION['authenticationFlag']['user_id'] . ')" name="email" type="text" placeholder="firstname lastname">';
 				        ?>
 				    </fieldset>
 			    </form>
@@ -422,15 +421,15 @@
 
 		}
 
-		function searchForUser(sender)
+		function searchForUser(sender, exclude_id)
 		{
 			if( globalTaskRunning == true )
 			{
 				return;
 			}
 
-			var userSearchRes = document.getElementById('userSearchRes');
-			userSearchRes.innerHTML = '';
+			document.getElementById('userSearchRes').innerHTML = '';
+			document.getElementById('hitCount').innerHTML = '';
 
 			sender = sender.value.split(' ');
 			var fname = sender[0].trim();
@@ -449,6 +448,7 @@
 			var payload = {getUserProfile: {}};
 			payload.getUserProfile.fname = fname;
 			payload.getUserProfile.lname = lname;
+			payload.getUserProfile.exclude_id = exclude_id;
 
 			httpPost(payload, './services.php', function(response)
 		    {
@@ -481,12 +481,22 @@
 		{
 			var template = document.getElementById('singleUserResTemplate');
 			var userSearchRes = document.getElementById('userSearchRes');
+			var hitCount = document.getElementById('hitCount');
+			var findCount = 0;
+
 			userSearchRes.innerHTML = '';
+			hitCount.innerHTML = '';
 			
 			for(var i=0; i<userDetails.response.length; i++)
 			{
 				var user = userDetails.response[i];
-			
+				if( userDetails.request.exclude_id == user.user_id )
+				{
+					//skip current user
+					continue;
+				}
+				
+				findCount++;
 				var copy = template.cloneNode(true);
 				copy.getElementsByClassName('userName')[0].innerText = user.fname + ' ' + user.lname;
 				copy.style.display = 'block';
@@ -505,6 +515,7 @@
 				userSearchRes.appendChild(copy);
 			}
 			
+			hitCount.innerHTML = findCount + ' hit(s)';
 			userSearchRes.scrollIntoView();
 			globalTaskRunning = false;
 		}

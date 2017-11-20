@@ -53,3 +53,26 @@ function pagination(c, m)
 
     return rangeWithDots;
 }
+
+function httpPost(obj, postURI, callback)
+{
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', postURI);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+
+    xhr.onreadystatechange = function () 
+    {
+        if (xhr.readyState == 4 && xhr.status == 200) 
+        {
+            callback(xhr.responseText);
+        }
+    }
+
+    xhr.onerror = function()
+    {
+        console.log('\thttpPost(): Network error.');
+        callback({});
+    };
+
+    xhr.send( JSON.stringify(obj) );
+}

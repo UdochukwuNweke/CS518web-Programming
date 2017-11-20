@@ -101,8 +101,7 @@ function parsePost()
 	{
 		return;
 	}
-
-	echo 'FOR DEBUGGING: <br>';
+	
 	var_dump( $_POST );
 
 	if( isset($_POST['channel_state']) )
@@ -510,18 +509,26 @@ Direct Messages:
 		{	
 			$msgExtraParams['page'] = 1;
 		}
-
 		printPagePanel( $_SESSION['config']['history_size'] );
 		
-		echo '<div id="infoArea">';
+		$channelInfo = getCurChannel();
+		$reactionTypes = genericGetAll('Reaction_Type');
+
+		$msgExtraParams['reactionTypes'] = $reactionTypes;
+		$msgExtraParams['role_type'] = $_SESSION['authenticationFlag']['role_type'];
+		$msgExtraParams['state'] = $channelInfo['state'];
+
+		$payload = array(
+			'channel_info' => $channelInfo,
+			'msg_extra_params' => $msgExtraParams,
+			'user_id' => $_SESSION['authenticationFlag']['user_id'],
+			'fname' => $_SESSION['authenticationFlag']['fname'],
+			'lname' => $_SESSION['authenticationFlag']['lname']
+		);
+		$payload = htmlspecialchars(json_encode($payload), ENT_QUOTES, 'UTF-8');
+
+		echo '<div onscroll="scrolling(\'' . $payload . '\')" id="infoArea">';
 		echo '<div id="msgAreaContainer">';
-
-			$channelInfo = getCurChannel();
-			$reactionTypes = genericGetAll('Reaction_Type');
-
-			$msgExtraParams['reactionTypes'] = $reactionTypes;
-			$msgExtraParams['role_type'] = $_SESSION['authenticationFlag']['role_type'];
-			$msgExtraParams['state'] = $channelInfo['state'];
 
 			if( isset($_GET['channel']) )
 			{
@@ -727,7 +734,6 @@ Direct Messages:
 
 	function continuousUpdate(payload)
 	{
-		
 		console.log('\ncontinuousUpdate(), payload:', payload);
 
 		httpPost({'getPost': payload}, './services.php', function(response)
@@ -745,13 +751,14 @@ Direct Messages:
 	        }
 	    });
 
-		
+		/*
 		setTimeout(
 			function()
 			{ 
 				continuousUpdate(payload);
 			}
 		, 3000);
+		*/
 		
 	}
 
@@ -760,42 +767,30 @@ Direct Messages:
 		console.log('\nmouseOverText():', activity);
 	}
 
-	function httpPost(obj, postURI, callback)
-	{
-	    var xhr = new XMLHttpRequest();
-	    xhr.open('POST', postURI);
-	    xhr.setRequestHeader('Content-Type', 'application/json');
-
-	    xhr.onreadystatechange = function () 
+	function scrolling(payload)
+	{	
+		payload = JSON.parse(payload);
+		console.log('scrolling, updating UI');
+		httpPost({'getPost': payload}, './services.php', function(response)
 	    {
-	        if (xhr.readyState == 4 && xhr.status == 200) 
-	        {
-	            callback(xhr.responseText);
+	        response = JSON.parse(response);
+	        if( response.response )
+	        {	
+	        	var oldMsgAreaCon = document.getElementsByClassName('msgArea');
+	        	refreshMsgArea(oldMsgAreaCon, response.response);
+				addExtraDetailsToPost();	        	
 	        }
-	    }
-
-	    xhr.onerror = function()
-	    {
-	        console.log('\thttpPost(): Network error.');
-	        callback({});
-	    };
-
-	    xhr.send( JSON.stringify(obj) );
+	    });
 	}
 
 </script>
 
-	<?php
-
-		$payload = array(
-			'channel_info' => $channelInfo,
-			'msg_extra_params' => $msgExtraParams,
-			'user_id' => $_SESSION['authenticationFlag']['user_id'],
-			'fname' => $_SESSION['authenticationFlag']['fname'],
-			'lname' => $_SESSION['authenticationFlag']['lname']
-		);
-		echo '<script>continuousUpdate(' . json_encode($payload) . ')</script>';
-		
-	?>
+	
+	<!-- 
+		<?php
+		//echo '<script>continuousUpdate(' . json_encode($payload) . ')</script>'; 
+		?>
+	-->
+	
 </body>
 </html>
