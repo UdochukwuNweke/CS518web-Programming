@@ -1,4 +1,5 @@
 <?php
+ob_start();//https://stackoverflow.com/a/9709170
 session_start();
 
 ini_set('display_errors', 1);
@@ -12,11 +13,6 @@ authenticateUser();
 monitorURL();
 parsePost();
 
-/* 
-to do:
-delete image after post is deleted
-upload image link
-*/
 
 function authenticateUser()
 {
@@ -101,7 +97,7 @@ function parsePost()
 	{
 		return;
 	}
-	
+
 	var_dump( $_POST );
 
 	if( isset($_POST['channel_state']) )
@@ -246,8 +242,10 @@ function getCurChannel()
 		else
 		{
 			//bad channel address, set default
-			//header('Location: main.php?channel=general');
-			header('Location: main.php');
+			//header('Location: index.php');
+			header('Location: main.php?channel=general&page=1');
+			exit;
+			
 		}
 	}
 
@@ -396,7 +394,6 @@ function pagination($c, $m)
 }
 
 ?>
-
 <html>
 <head>
 	<script src="common.js"></script>
@@ -437,8 +434,6 @@ function pagination($c, $m)
 <div class="leftmenu">
 Channels:
 <hr>
-
-
 <?php
 	$channels = genericGetAll('Channel');
 	$memberChannels = genericGetAll('Channel_Membership', 'WHERE user_id=' . $_SESSION['authenticationFlag']['user_id']);
@@ -470,11 +465,8 @@ Channels:
 	$_SESSION['channels']['pub-non-memb'] = $channelPartition['pub-non-memb'];
 
 ?>
-
-
 Direct Messages:
 <hr>
-
 <?php
 	$users = genericGetAll('User', 'WHERE user_id!=' . $_SESSION['authenticationFlag']['user_id'], 'user_id, fname, lname');
 	$_SESSION['users'] = $users;
@@ -486,13 +478,11 @@ Direct Messages:
 	}
 	echo '</ul>';
 ?>
-
 </div>
 
 
 <br>
 <div class="main">	
-	
 	<?php
 		$msgExtraParams = array();
 		$msgExtraParams['page_size'] = $_SESSION['config']['paginationSize'];
@@ -582,7 +572,6 @@ Direct Messages:
 			echo '<strong>This channel has been archived, if you need it unarchived, please contact the administrator.</strong>';
 		}
 	?>
-	
 </div>
 
 
