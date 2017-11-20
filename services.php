@@ -3,7 +3,7 @@
 date_default_timezone_set('America/New_York');
 
 $serverName = 'localhost';
-$dbUserName = 'unweke';
+$dbUserName = 'admin';
 $dbPassword = 'M0n@rch$';
 $dbname = 'CS518DB';
 
