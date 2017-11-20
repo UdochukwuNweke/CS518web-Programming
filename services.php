@@ -3,7 +3,7 @@
 date_default_timezone_set('America/New_York');
 
 $serverName = 'localhost';
-$dbUserName = 'admin';
+$dbUserName = 'unweke';
 $dbPassword = 'M0n@rch$';
 $dbname = 'CS518DB';
 
@@ -61,10 +61,41 @@ if( $_SERVER['REQUEST_METHOD'] == 'POST' )
 	{
 		processGetPostWebServiceRequest($request['getPost']);
 	}
+	elseif( isset($request['getUserProfile']) )
+	{
+		processUserProfileWebServiceRequest($request['getUserProfile']);
+	}
 	else
 	{
 		echo json_encode(new stdClass());
 	}
+}
+
+function processUserProfileWebServiceRequest($request)
+{
+	$response = array(
+		'request' => $request
+	);
+	
+	if( isset($request['fname']) && isset($request['lname']) )
+	{
+		$query = 'SELECT user_id, fname, lname FROM User WHERE fname LIKE "%' . $request['fname'] .  '%" AND lname LIKE "%' . $request['lname'] . '%" ';
+		$response['response'] = genericQuery($query);
+
+		for($i = 0; $i<count($response['response']); $i++)
+		{
+			$avatar = './profileImgs/' . $response['response'][$i]['user_id'] . '.jpg';
+			if( file_exists($avatar) == false )
+			{
+				$avatar = 'https://www.w3schools.com/tags/smiley.gif';
+			}
+
+			$response['response'][$i]['channel_memb'] = genericQuery('SELECT * FROM Channel C, Channel_Membership  CM WHERE C.type="PUBLIC" AND C.channel_id=CM.channel_id AND CM.user_id='. $response['response'][$i]['user_id'] );#genericQuery('SELECT * FROM Channel_Membership WHERE user_id='. $response['response'][$i]['user_id']);
+			$response['response'][$i]['avatar'] = $avatar;
+		}
+	}
+
+	echo json_encode($response);
 }
 
 function processGetPostWebServiceRequest($request)
@@ -896,8 +927,6 @@ function getMsgDiv($post_id, $user_id, $fname, $lname, $datetime, $content, $par
 				{
 					echo '<input value="'. $auth_user_id . '" type="hidden" name="user_id">';					
 				}
-				//echo '<input class="pure-button" type="hidden" value="' . $reacType['reaction_type_id'] . '" name="' . $reacType['emoji'] . '">';
-				//echo '<input class="pure-button" type="hidden" value="' . $reacType['reaction_type_id'] . '" name="reaction_type_id-' . $reacType['reaction_type_id'] . '">';
 
 				if( isset($reactionDetails[$reacType['reaction_type_id']]) )
 				{

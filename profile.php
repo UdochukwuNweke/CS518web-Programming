@@ -111,9 +111,29 @@
 							return 0;
 		  				}
 
-		  				function getReactionCount()
+		  				function getFirstMsg()
 		  				{
+		  					$query = 'SELECT * FROM Post WHERE user_id=' . $_SESSION['authenticationFlag']['user_id'] . ' LIMIT 1';
+							$response = genericQuery($query);
+							if( count($response) != 0 )
+							{
+								return explode(' ', $response[0]['datetime'])[0];
+							}
 
+							return '';
+		  				}
+
+		  				function getChannelsOwnership()
+		  				{
+		  					$query = 'SELECT * FROM Channel WHERE creator_id=' . $_SESSION['authenticationFlag']['user_id'];
+							$response = genericQuery($query);
+
+							echo '<ol>';
+							for($i = 0; $i<count($response); $i++)
+							{
+								echo '<li>' . $response[$i]['name'] . ' (' . $response[$i]['type'] . ' - ' . $response[$i]['state'] . ')' . '</li>';
+							}
+							echo '</ol>';
 		  				}
 		  				
 		  				//$_SESSION['authenticationFlag'];
@@ -121,7 +141,12 @@
 		  				echo '<li><strong>Public channel count: </strong>' . count($_SESSION['channels']['pub-memb']) . '</li>';
 		  				echo '<li><strong>Private channel count: </strong>' . count($_SESSION['channels']['priv-memb']) . '</li>';
 		  				echo '<li><strong>Post count: </strong>' . getCount('Post') . '</li>';
+		  				echo '<br>';
 		  				echo '<li><strong>Reaction count: </strong>' . getCount('Reaction') . '</li>';
+		  				echo '<li><strong>First Message date: </strong>' . getFirstMsg() . '</li>';
+		  				echo '<br>';
+		  				echo '<li><strong>Channels I own: </strong></li>';
+		  				getChannelsOwnership();
 		  			?>
 				</ul>
 
@@ -312,9 +337,58 @@
 
 	  </tr>
 
+	  <tr>
+	  	<td align="center" colspan="2">
+	  		<div style="padding: 10px 0px 0px 10px; width:80%; height: 20%;">
+
+	  			<h3> Search User Profiles </h3>
+	  			<form class="pure-form">
+				    <fieldset>
+				        <legend></legend>
+				        
+				        <?php
+							echo '<input onkeyup="searchForUser(this)" name="email" type="text" placeholder="firstname lastname">';
+				        ?>
+				    </fieldset>
+			    </form>
+
+			    <div id="singleUserResTemplate" style="display: none">
+				    <?php
+				    	echo '<h3 class="userName">'. $_SESSION['authenticationFlag']['fname'] . ' ' . $_SESSION['authenticationFlag']['lname'] . '</h3>';
+						$avatar = './profileImgs/' . $_SESSION['authenticationFlag']['user_id'] . '.jpg';
+						if( file_exists($avatar) )
+						{
+							echo '<img src="'. $avatar .'" alt="avatar" class="avatar" style="float: inherit; width: 200px; height: 200px;">';	
+						}
+						else
+						{
+							echo '<img src="https://www.w3schools.com/tags/smiley.gif" alt="avatar" class="avatar" width="200" height="200" style="border-radius: 5px; border: 1px solid #999999;">';
+						}
+					?>
+
+					<h3>Public Channel Membership</h3>
+		  			<ol class="channelMemb" style="width: 30%;">
+			  			<?php
+			  				for($i = 0; $i<count($_SESSION['channels']['pub-memb']); $i++)
+			  				{
+			  					$channel = $_SESSION['channels']['pub-memb'][$i];
+			  					echo '<li>' . getHTMLForChannel($channel) . '</li>';
+			  				}
+			  			?>
+					</ol>
+				</div>
+
+			    <div id="userSearchRes">
+				</div>
+	  		
+			</div>
+	  	</td>
+	  </tr>
+
 	</table>
 
 	<script type="text/javascript">
+		var globalTaskRunning = false;
 		function editMembershipForUser(sender)
 		{
 			var uriParams = processURL();
@@ -346,6 +420,93 @@
 
 			window.location.href = './profileOps.php?channel_archive_state=' + sender.value + '&archive_state=' + state;
 
+		}
+
+		function searchForUser(sender)
+		{
+			if( globalTaskRunning == true )
+			{
+				return;
+			}
+
+			var userSearchRes = document.getElementById('userSearchRes');
+			userSearchRes.innerHTML = '';
+
+			sender = sender.value.split(' ');
+			var fname = sender[0].trim();
+			var lname = '';
+
+			if( sender.length > 1 )
+			{	
+				lname = sender[1].trim();
+			}
+
+			if( fname.length == 0 && lname.length == 0 )
+			{
+				return;
+			}
+
+			var payload = {getUserProfile: {}};
+			payload.getUserProfile.fname = fname;
+			payload.getUserProfile.lname = lname;
+
+			httpPost(payload, './services.php', function(response)
+		    {
+		        response = JSON.parse(response);
+		        if( response.response.length != 0 )
+		        {
+		        	globalTaskRunning = true;
+		        	updateSearchResPanel(response);
+		        }
+		        else
+		        {
+		        	//try swap names
+		        	payload.getUserProfile.fname = lname;
+					payload.getUserProfile.lname = fname;
+
+		        	httpPost(payload, './services.php', function(response)
+					{
+						response = JSON.parse(response);
+						if( response.response.length != 0 )
+				        {
+				        	globalTaskRunning = true;
+				        	updateSearchResPanel(response);
+				        }
+					});
+		        }
+		    });
+		}
+
+		function updateSearchResPanel(userDetails)
+		{
+			var template = document.getElementById('singleUserResTemplate');
+			var userSearchRes = document.getElementById('userSearchRes');
+			userSearchRes.innerHTML = '';
+			
+			for(var i=0; i<userDetails.response.length; i++)
+			{
+				var user = userDetails.response[i];
+			
+				var copy = template.cloneNode(true);
+				copy.getElementsByClassName('userName')[0].innerText = user.fname + ' ' + user.lname;
+				copy.style.display = 'block';
+				copy.getElementsByClassName('avatar')[0].setAttribute('src', user.avatar);
+			
+				copy.getElementsByClassName('channelMemb')[0].innerHTML = '';
+				//add channel membership
+				for(var j=0; j<user.channel_memb.length; j++)
+				{
+					var li = document.createElement('li');
+					li.innerText = '# ' + user.channel_memb[j].name;
+
+					copy.getElementsByClassName('channelMemb')[0].appendChild(li);
+				}
+				
+				userSearchRes.appendChild(copy);
+			}
+			
+			userSearchRes.scrollIntoView();
+			globalTaskRunning = false;
 		}
 	</script>
 </body>
