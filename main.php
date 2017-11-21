@@ -56,6 +56,11 @@ function authenticateUser()
 				{
 					$newLocation .= '&post=' . $_GET['post'];
 				}
+
+				if( isset($_GET['page']) )
+				{
+					$newLocation .= '&page=' . $_GET['page'];
+				}
 			}
 
 			header('Location: ' . $newLocation);
@@ -98,7 +103,7 @@ function parsePost()
 		return;
 	}
 
-	var_dump( $_POST );
+	//var_dump( $_POST );
 
 	if( isset($_POST['channel_state']) )
 	{

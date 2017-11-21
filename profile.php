@@ -76,7 +76,7 @@
 				<form class="pure-form" action="profileOps.php" enctype="multipart/form-data" method="post">
 				    <fieldset>
 				    	<input type="file" id="upload-photo" name="mkfile" style="opacity: 0;position: absolute;z-index: -1;"/>
-				    	<label for="upload-photo" style="cursor: pointer;">   &#128247; Upload image (1MB)</label>
+				    	<label for="upload-photo" style="cursor: pointer;">   &#128247; Select image (1MB)</label>
 
 				    	<input type="hidden" name="MAX_FILE_SIZE" value="1048576">
 				    	<button type="submit" class="pure-button">Upload new image</button>
@@ -128,12 +128,85 @@
 		  					$query = 'SELECT * FROM Channel WHERE creator_id=' . $_SESSION['authenticationFlag']['user_id'];
 							$response = genericQuery($query);
 
+							echo '<li><strong>Channels I own: </strong>' . count($response) . '</li>';
 							echo '<ol>';
 							for($i = 0; $i<count($response); $i++)
 							{
 								echo '<li>' . $response[$i]['name'] . ' (' . $response[$i]['type'] . ' - ' . $response[$i]['state'] . ')' . '</li>';
 							}
 							echo '</ol>';
+		  				}
+
+		  				function Like($a, $b)
+						{
+						    if ($a['post_like_count'] == $b['post_like_count']) 
+						    {
+						        return 0;
+						    }
+						    return ($a['post_like_count'] > $b['post_like_count']) ? -1 : 1;
+						}
+
+						function Posts($a, $b)
+						{
+						    if ($a['post_count'] == $b['post_count']) 
+						    {
+						        return 0;
+						    }
+						    return ($a['post_count'] > $b['post_count']) ? -1 : 1;
+						}
+
+		  				function getRanks($userId, $cmp, $accessor)
+		  				{
+		  					$rankCount = 4;
+		  					echo "<br><li><strong>Rank ($cmp): </strong></li>";
+
+		  					$users = getStatsUsers();
+		  					usort($users, $cmp);
+
+		  					echo '<ol>';
+		  					$foundFlag = false;
+		  					$stars = '';
+		  					for($i = 0; $i<count($users); $i++)
+		  					{
+		  						$strongStart = '';
+		  						$strongEnd = '';
+		  						$stars = '<span style="color: gold;">'. str_repeat('&#9733;', ($rankCount+1) - $i) .'</span>';
+
+		  						if( $users[$i]['user_id'] == $userId )
+		  						{
+		  							$strongStart = '<strong style="color: red;">';
+		  							$strongEnd = '</strong>';
+		  							$foundFlag = true;
+		  						}
+
+		  						$u = $users[$i]['fname'] . ' ' . $users[$i]['lname'] . ' (' . $users[$i][$accessor] . ')';
+		  						echo '<li>' . $strongStart . $u . $strongEnd . $stars . '</li>';
+		  						if( $i == $rankCount )
+		  						{
+		  							break;
+		  						}
+		  					}
+
+		  					if( $foundFlag == false )
+		  					{
+		  						echo '...<br>';
+		  						for($i = $rankCount+1; $i<count($users); $i++)
+		  						{
+		  							if( $users[$i]['user_id'] != $userId )
+		  							{
+		  								continue;
+		  							}
+
+		  							$u = $users[$i]['fname'] . ' ' . $users[$i]['lname'] . ' (' . $users[$i][$accessor] . ')';
+		  							echo '<strong style="color: red;">' . ($i+1) . '. ' . $u . '</strong>';
+
+		  							break;
+		  						}
+		  					}
+
+		  					echo '</ol>';
+		  					
+		  					return 0;
 		  				}
 		  				
 		  				echo '<li><strong>Public channel count: </strong>' . count($_SESSION['channels']['pub-memb']) . '</li>';
@@ -143,8 +216,9 @@
 		  				echo '<li><strong>Reaction count: </strong>' . getCount('Reaction') . '</li>';
 		  				echo '<li><strong>First Message date: </strong>' . getFirstMsg() . '</li>';
 		  				echo '<br>';
-		  				echo '<li><strong>Channels I own: </strong></li>';
 		  				getChannelsOwnership();
+		  				getRanks($_SESSION['authenticationFlag']['user_id'], 'Like', 'post_like_count');
+		  				getRanks($_SESSION['authenticationFlag']['user_id'], 'Posts', 'post_count');
 		  			?>
 				</ul>
 

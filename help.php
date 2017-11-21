@@ -30,38 +30,53 @@
 
 	<hr class="style13">
 	
+	<div style="width: 80%;  margin: 0 auto;">
+		<h3>How to create a channel</h3>
+		<ul>
+			<li>From the homepage, click "New channel/invite" to create a new channel or invite a user to 
+			a particular channel</li>
+		</ul>
 
-	<table style="width: 60%; cellpadding: 10px; margin: 0 auto;">
-	  <tr>
+		<h3>How to become a channel member</h3>
+		<ul>
+			<li>From the channel panel, select the channel, and post inside the channel to subscribe</li>
+		</ul>
 
-	    <td align="center">
-	    	<div style="padding: 10px 0px 0px 10px; width:80%; height: 20%;">
-	    		<h3> Profile Image </h3>
-			</div>
-	    </td>
+		<h3>How to make a user a channel member</h3>
+		<ul>
+			<li>Send an invitation to the user to enroll the user to a channel</li>
+		</ul>
 
-	    <td align="center">
-	    	<div style="padding: 10px 0px 0px 10px;width: 80%; height: 20%;">
-			</div>
-	    </td> 
+		<h3>Change your profile image</h3>
+		<ul>
+			<li>From the profile page, under your avatar, click "Select image" and click "Upload new image"</li>
+		</ul>
 
-	  </tr>
+		<h3>Embed an image to a post</h3>
+		<ul>
+			<li>Paste image url in post text box or select an image from local file ("Upload image)</li>
+		</ul>
 
+		<h3>See replies to a post</h3>
+		<ul>
+			<li>Click on the reply count of the post to see thread</li>
+		</ul>
 
-	  <tr>
-	  	<td align="center">
-	  		<div style="padding: 10px 0px 0px 10px; width:80%; height: 20%;">
-	  			<h3>Public Channel Membership</h3>
-	  		</div>
-	  	</td>
+	<hr class="style13">
+		<h3>ADMINISTRATOR</h3>
 
+		<h3>Archive/Unarchive channel</h3>
+		<ul>
+			<li>From profile, under "Current Archived Channels," check to archive a channel, uncheck to unarchive channel</li>
+		</ul>
 
-	  	<td align="center">
-	  		<div style="padding: 10px 0px 0px 10px; width:80%; height: 20%;">
-	  	</td>
-	  </tr>
+		<h3>Edit a user's channel membership</h3>
+		<ul>
+			<li>From profile, under "Edit User Channel Membership," select the user and select/unselect the channels, hit submit</li>
+		</ul>
 
-	</table>
+	</div>
+
 
 
 </body>
