@@ -3,7 +3,7 @@
 date_default_timezone_set('America/New_York');
 
 $serverName = 'localhost';
-$dbUserName = 'admin';
+$dbUserName = 'unweke';
 $dbPassword = 'M0n@rch$';
 $dbname = 'CS518DB';
 
@@ -1089,6 +1089,23 @@ function getHTMLForChannel($channel, $linkFlag=true)
 	
 
 	return $html;
+}
+
+function getStatsUsers()
+{
+	$users = genericQuery('SELECT user_id, fname, lname from User');
+
+	for($i = 0; $i<count($users); $i++)
+	{
+		$thumbsUpCountQuery = 'SELECT count(*) post_like_count FROM Post P, Reaction R WHERE P.user_id=' . $users[$i]['user_id'] . ' AND P.post_id=R.post_id AND R.reaction_type_id=1';
+
+		$postCountQuery = 'SELECT count(*) post_count FROM Post WHERE user_id=' . $users[$i]['user_id'];
+
+		$users[$i]['post_like_count'] = genericQuery($thumbsUpCountQuery)[0]['post_like_count'];
+		$users[$i]['post_count'] = genericQuery($postCountQuery)[0]['post_count'];
+	}
+
+	return $users;
 }
 
 function getHTMLForUser($user)
