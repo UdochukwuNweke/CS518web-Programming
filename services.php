@@ -3,7 +3,7 @@
 date_default_timezone_set('America/New_York');
 
 $serverName = 'localhost';
-$dbUserName = 'admin';
+$dbUserName = 'unweke';
 $dbPassword = 'M0n@rch$';
 $dbname = 'CS518DB';
 
@@ -64,10 +64,6 @@ if( $_SERVER['REQUEST_METHOD'] == 'POST' )
 	elseif( isset($request['getUserProfile']) )
 	{
 		processUserProfileWebServiceRequest($request['getUserProfile']);
-	}
-	else
-	{
-		echo json_encode(new stdClass());
 	}
 }
 
