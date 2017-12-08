@@ -2,15 +2,21 @@
 ob_start();//https://stackoverflow.com/a/9709170
 session_start();
 
+$debug = true;
+/*
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
+*/
 
 include('services.php');
 
 validatePost();
 authenticateUser();
-monitorURL();
+if( $GLOBALS['debug'] === false )
+{
+	monitorURL();
+}
 parsePost();
 
 
@@ -103,7 +109,13 @@ function parsePost()
 		return;
 	}
 
-	//var_dump( $_POST );
+	if( $GLOBALS['debug'] === true )
+	{
+		//var_dump( $_POST );
+		//var_dump( $_FILES );
+		//return;
+	}
+
 
 	if( isset($_POST['channel_state']) )
 	{
@@ -119,6 +131,7 @@ function parsePost()
 	
 	if( isset($_POST['delete']) ) 
 	{
+
 		//delete
 		if( $_SESSION['authenticationFlag']['role_type'] == 'ADMIN' )
 		{
@@ -137,11 +150,45 @@ function parsePost()
 		//image upload - start
 		$imgLinks = array();
 		if( $_FILES )
-		{
-			$uploadfile = './postImgs/' . getKRandStr(10) . '.jpg';
-			if( uploadImage($_FILES, 'image', $uploadfile) == 'go' )
+		{	
+			if( strlen($_FILES['mkfile']['name']) != 0 )
 			{
-				array_push($imgLinks, $uploadfile);
+				
+				#this is an image
+				$uploadfile = './postImgs/' . getKRandStr(10) . '.jpg';
+				if( uploadImage($_FILES, 'image', $uploadfile) == 'go' )
+				{
+					array_push($imgLinks, $uploadfile);
+				}
+			}
+			
+			if( strlen($_FILES['mkfile-gen']['name']) != 0 )
+			{
+				//this is a generic upload file or image
+				$type = explode('/', $_FILES['mkfile-gen']['type'])[0];
+				$exn = explode('.', $_FILES['mkfile-gen']['name']);
+				$filename = $exn[0];
+				$optImg = '';
+				
+				if( count($exn) > 1 )
+				{
+					$exn = $exn[1];
+				}
+				else
+				{
+					$exn = 'exn';
+				}
+				$uploadfile = './postImgs/' . getKRandStr(10) . '.' . $exn;
+				
+				if( $type == 'image' )
+				{
+					$optImg = "<img alt='file thumbnail' class='postIcon' src='$uploadfile'>";
+				}
+
+				if( uploadImage($_FILES, $type, $uploadfile, 'mkfile-gen') == 'go' )
+				{
+					$content = addDownloadLinkToPost($content, $filename, $uploadfile, $optImg);
+				}
 			}
 		}
 
@@ -565,9 +612,13 @@ Direct Messages:
 			echo '<input type="submit" value="post" class="pure-button pure-button-primary">';
 			echo '<br><input type="checkbox" name="pre_tag"> Pre-formated';
 			
-			echo '<input type="hidden" name="MAX_FILE_SIZE" value="1048576">';
-			echo '<input type="file" id="upload-photo" name="mkfile" style="opacity: 0;position: absolute;z-index: -1;" />';
-			echo '<label for="upload-photo" style="cursor: pointer;">   &#128247; Upload image (1MB)</label>';
+			echo '<input type="hidden" name="MAX_FILE_SIZE" value="5048576">';
+
+			echo '<input type="file" id="upload-photo-main" name="mkfile" style="opacity: 0;position: absolute;z-index: -1;" />';
+			echo '<label for="upload-photo-main" style="cursor: pointer;">   &#128247; Upload image (5MB)</label>';
+
+			echo '<input type="file" id="upload-file-main" name="mkfile-gen" style="opacity: 0;position: absolute;z-index: -1;" />';
+			echo '<label for="upload-file-main" style="cursor: pointer;">   &#128194; Upload file (5MB)</label>';
 			
 			echo '</fieldset>';
 			echo '</form>';
@@ -585,7 +636,7 @@ Direct Messages:
 	function main()
 	{	
 		console.log('\nmain()');
-		addExtraDetailsToPost();
+		preAddExtraDetails();
 	}
 
 	function replyCounterClick(post_id)
@@ -605,31 +656,33 @@ Direct Messages:
 		}
 	}
 
-	function addExtraDetailsToPost()
+	function addExtraDetailsToPost(className)
 	{
 		var msgDivs = document.getElementsByClassName('msgArea');
 		for(var i=0; i<msgDivs.length; i++)
 		{
-			var imgFlag = msgDivs[i].getElementsByClassName('postImg');
+			var imgFlag = msgDivs[i].getElementsByClassName(className);
 			var formDiv = msgDivs[i].getElementsByClassName('pure-form')[0];
 			
 			for(var j = 0; j<imgFlag.length; j++ )
 			{
-				var link = imgFlag[j]['src'].split('/Slack/postImgs/')[1];
-				
+				var selector = 'href';
+				if( imgFlag[j].nodeName.toLowerCase() == 'img' )
+				{
+					selector = 'src';
+				}
+
+				var link = imgFlag[j][selector].split('/Slack/postImgs/')[1];
 				if( link != undefined )
 				{
 					var hidden = document.createElement('input');
 					hidden.type = 'hidden';
 					hidden.value = './postImgs/' + link;
 					hidden.name = 'post_img_id';
-
 					formDiv.appendChild(hidden);
 				}
 			}			
 		}
-
-
 
 		var timestamps = document.getElementsByClassName('timestamp');
 		for(var i=0; i<timestamps.length; i++)
@@ -637,6 +690,12 @@ Direct Messages:
 			var time = timestamps[i].getAttribute('value');
 			timestamps[i].innerText = moment(time).fromNow() + ' (' + time + ')';
 		}
+	}
+	function preAddExtraDetails()
+	{
+		addExtraDetailsToPost('postImg');
+		addExtraDetailsToPost('postIcon');
+		addExtraDetailsToPost('postFile');
 	}
 
 	function scrollToTop()
@@ -738,7 +797,7 @@ Direct Messages:
 	        {	
 	        	var oldMsgAreaCon = document.getElementsByClassName('msgArea');
 	        	refreshMsgArea(oldMsgAreaCon, response.response);
-				addExtraDetailsToPost();	        	
+				preAddExtraDetails();        	
 
 				//to drastic a change
 	        	//msgAreaContainer.innerHTML = response.response;
@@ -761,6 +820,7 @@ Direct Messages:
 		console.log('\nmouseOverText():', activity);
 	}
 
+
 	function scrolling(payload)
 	{	
 		payload = JSON.parse(payload);
@@ -772,7 +832,7 @@ Direct Messages:
 	        {	
 	        	var oldMsgAreaCon = document.getElementsByClassName('msgArea');
 	        	refreshMsgArea(oldMsgAreaCon, response.response);
-				addExtraDetailsToPost();	        	
+				preAddExtraDetails();  	
 	        }
 	    });
 	}

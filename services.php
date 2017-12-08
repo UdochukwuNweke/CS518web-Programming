@@ -848,6 +848,37 @@ function addImgLinksToPost($content, $links)
 	return $content;
 }
 
+function addDownloadLinkToPost($content, $filename, $link, $optImg='')
+{
+	$link = trim($link);
+	if( strlen($link) == 0 )
+	{
+		return $content;
+	}	
+
+	$content .= '<div><br>';		
+	$download = "<a class='postFile' src='$link' target='_blank' href='$link'> <strong>Download $filename</strong><br>$optImg</a>";
+
+	if( strpos($content, $link) )
+	{
+		$content = str_replace(
+			$link, 
+			$download, 
+			$content
+		);
+	}
+	else
+	{
+		$content .= $download;
+	}
+	
+
+	
+	$content .= '</div>';
+	
+	return $content;
+}
+
 
 function getMsgDiv($post_id, $user_id, $fname, $lname, $datetime, $content, $parent_id, $auth_user_id, $channel_id, $msgExtraParams)
 {
@@ -937,11 +968,11 @@ function getMsgDiv($post_id, $user_id, $fname, $lname, $datetime, $content, $par
 			echo '<input class="pure-button" type="hidden" name="reaction">';
 		}
 		
-		echo '<input type="hidden" name="MAX_FILE_SIZE" value="1048576">';
-		echo '<input onclick="scrollToTop()" type="file" id="upload-photo1" name="mkfile" style="opacity: 0;position: absolute;z-index: -1;" />';
+		echo '<input type="hidden" name="MAX_FILE_SIZE" value="5048576">';
+		echo '<input onclick="scrollToTop()" type="file" id="upload-photo-' . $post_id . '" name="mkfile" style="opacity: 0;position: absolute;z-index: -1;" />';
 		//generate reaction fields - end
 		echo '<br><input type="checkbox" name="pre_tag"> Pre-formated';
-		echo '<label for="upload-photo1" style="cursor: pointer;">   &#128247; Upload image (1MB)</label>';
+		echo '<label for="upload-photo-' . $post_id . '" style="cursor: pointer;">   &#128247; Upload image (5MB)</label>';
 	echo '</form>';
 	
 	echo '<br>';
@@ -1126,16 +1157,16 @@ function getHTMLForUser($user)
 	return $html;
 }
 
-function uploadImage($files, $expectedType, $destName)
+function uploadImage($files, $expectedType, $destName, $accessor='mkfile')
 {
-	$type = explode('/', $files['mkfile']['type'])[0];
+	$type = explode('/', $files[$accessor]['type'])[0];
 	$response = '';
 
-	if ( !$files['mkfile']['error'] ) 
+	if ( !$files[$accessor]['error'] ) 
 	{
 		if( $type == $expectedType )
 		{
-			if( move_uploaded_file($files['mkfile']['tmp_name'], $destName) )
+			if( move_uploaded_file($files[$accessor]['tmp_name'], $destName) )
 			{
 				$response = 'go';	
 				chmod($destName, 0644);
@@ -1150,9 +1181,9 @@ function uploadImage($files, $expectedType, $destName)
 			$response = 'Error: bad file format - ' . $type;	
 		}
 	} 
-	elseif($files['mkfile']['error'])
+	elseif($files[$accessor]['error'])
 	{
-		$response = 'Error ' . $files['mkfile']['error'] . '. Make sure file size is under 1MB.';
+		$response = 'Error ' . $files[$accessor]['error'] . '. Make sure file size is under 1MB.';
 	} 
 	else 
 	{

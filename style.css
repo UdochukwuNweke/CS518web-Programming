@@ -41,6 +41,15 @@ div{
 	border: 1px solid #999999;
 }
 
+.postIcon{
+	max-width: 100px;
+	/*max-height: 500px;*/
+	/*margin: 5px 5px 5px 5px;
+	float: left;  */
+	border-radius: 5px;
+	border: 1px solid #999999;
+}
+
 .leftmenu
 { 
 	padding: 10px 0px 0px 10px;
