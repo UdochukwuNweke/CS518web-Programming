@@ -13,6 +13,7 @@
 <html>
 
 <head>
+	<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 	<link rel="stylesheet" type="text/css" href="style.css">
 	<link href="https://fonts.googleapis.com/css?family=Poiret+One" rel="stylesheet">
 	<link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
@@ -95,6 +96,7 @@
 				    </fieldset>
 
 				    <fieldset>
+				    	<div class="g-recaptcha" data-sitekey="6LcOXTwUAAAAAGgmDXzUSZMCzjrkTy25gfaah-_e"></div>
 				    	<input type="email" placeholder="Email" name="Email">
 				    	<button type="submit" class="pure-button pure-button-primary">Register</button>
 					</fieldset>

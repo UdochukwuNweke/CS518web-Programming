@@ -18,6 +18,63 @@ foreach ($_POST as $key => $value)
 	}
 }
 
+//check captcha
+if( isset($_POST['g-recaptcha-response']) == false )
+{
+	$_SESSION['register.php.msg'] = 'Failed CAPTCHA, please solve CAPTCHA';
+	
+	header('Location: index.php');
+	exit;
+}
+else
+{
+	//credit: https://stackoverflow.com/a/6609181
+	$url = 'https://www.google.com/recaptcha/api/siteverify';
+
+	$data = array(
+        'secret' => '6LcOXTwUAAAAAAO3x6270dz3W1Y9Jto21rK4xt98', 
+        'response' => $_POST['g-recaptcha-response']
+    );
+
+    // use key 'http' even if you send the request to https://...
+    $options = array(
+        'http' => array(
+            'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+            'method'  => 'POST',
+            'content' => http_build_query($data)
+        )
+    );
+
+    $context  = stream_context_create($options);
+	$result = file_get_contents($url, false, $context);
+
+	if ($result === FALSE ) 
+    { 
+      	$_SESSION['register.php.msg'] = 'Error processing CAPTCHA, please contact admin';
+
+		header('Location: index.php');
+		exit;
+    }
+
+    if( isset($result['success']) == false )
+    {
+    	$_SESSION['register.php.msg'] = 'Error processing CAPTCHA, please contact admin';
+
+		header('Location: index.php');
+		exit;
+    }
+    else
+    {
+    	if( $result['success'] != true )
+    	{
+    		$_SESSION['register.php.msg'] = 'Failed CAPTCHA, please solve CAPTCHA';
+
+			header('Location: index.php');
+			exit;
+    	}
+    }
+}
+
 //check for empty strings
 foreach ($_POST as $key => $value) 
 {
