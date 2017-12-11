@@ -48,8 +48,59 @@
 	    <td align="center">
 	    	<div style="padding: 10px 0px 0px 10px; width:80%; height: 20%;">
 
-	    		<h3> Profile Image </h3>
 				<?php
+
+					$avatarFile = './profileImgs/' . $_SESSION['authenticationFlag']['user_id'] . '.jpg';
+					$gravatarFile = './profileImgs/grav-' . $_SESSION['authenticationFlag']['user_id'] . '.jpg';
+					$imageSourceFile = $avatarFile;
+					
+					$imgSrc = 'avatar';
+					$gravatar = '';
+					$gravatarCustom = '';
+
+					if( file_exists($gravatarFile) )
+					{
+						$gravatarCustom = ' - custom';
+						$gravatar = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+						$gravatar = explode('profile.php', $gravatar);
+						
+						$gravatar = urlencode($gravatar[0] . substr($gravatarFile, 2));
+						$gravatar .= '&f=y';
+					}
+					else
+					{
+						$gravatar = '404';
+					}
+					
+
+					$gravatar = "https://www.gravatar.com/avatar/" . md5(strtolower(trim($_SESSION['authenticationFlag']['email']))) . "?d=$gravatar&s=300";
+					$gravResCode = getResponseCode($gravatar);
+
+					$profileImgSrc = '';
+					if( file_exists($avatarFile) )
+					{
+						$gravatarCustom = '';
+						$profileImgSrc = '<img src="'. $avatarFile .'" alt="avatar" class="avatar" style="float: inherit; width: 200px; height: 200px;">';	
+					}
+					else if( $gravResCode[0] == '2' || $gravResCode[0] == '3' )
+					{
+						$imageSourceFile = $gravatarFile;
+						$imgSrc = 'gravatar';
+						$profileImgSrc = '<img src="'. $gravatar .'" alt="avatar" class="avatar" style="float: inherit; width: 200px; height: 200px;">';	
+					}
+					else
+					{
+						$gravatarCustom = '';
+						$profileImgSrc = '<img src="https://www.w3schools.com/tags/smiley.gif" alt="avatar" width="200" height="200" style="border-radius: 5px; border: 1px solid #999999;">';
+					}
+
+					echo "<h3> Profile Image (from: $imgSrc$gravatarCustom) </h3>";
+
+					echo '<form class="pure-form" action="profileOps.php" method="post">';
+						echo "<input name='remove_profile_img' type='hidden' value='$imageSourceFile'>";
+						echo "<input type='submit' value='Remove'>";
+					echo '</form>';
+
 					if( isset($_SESSION['profileOps.php.msg']) )
 					{
 						if( $_SESSION['profileOps.php.msg'] == 'go' )
@@ -63,20 +114,16 @@
 						}
 					}
 
-					$avatar = './profileImgs/' . $_SESSION['authenticationFlag']['user_id'] . '.jpg';
-					if( file_exists($avatar) )
-					{
-						echo '<img src="'. $avatar .'" alt="avatar" class="avatar" style="float: inherit; width: 200px; height: 200px;">';	
-					}
-					else
-					{
-						echo '<img src="https://www.w3schools.com/tags/smiley.gif" alt="avatar" width="200" height="200" style="border-radius: 5px; border: 1px solid #999999;">';
-					}
+					echo $profileImgSrc;
 				?>
 				<form class="pure-form" action="profileOps.php" enctype="multipart/form-data" method="post">
 				    <fieldset>
 				    	<input type="file" id="upload-photo" name="mkfile" style="opacity: 0;position: absolute;z-index: -1;"/>
 				    	<label for="upload-photo" style="cursor: pointer;">   &#128247; Select image (1MB)</label>
+
+				    	<?php
+				    	echo "<input type='hidden' name='image_src' value='$imgSrc'>";
+				    	?>
 
 				    	<input type="hidden" name="MAX_FILE_SIZE" value="1048576">
 				    	<button type="submit" class="pure-button">Upload new image</button>
@@ -590,7 +637,7 @@
 			}
 			
 			hitCount.innerHTML = findCount + ' hit(s)';
-			userSearchRes.scrollIntoView();
+			//userSearchRes.scrollIntoView();
 			globalTaskRunning = false;
 		}
 	</script>

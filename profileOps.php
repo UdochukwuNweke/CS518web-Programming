@@ -5,7 +5,18 @@ session_start();
 $_SESSION['profileOps.php.msg'] = '';
 if( $_FILES )
 {
-	$uploaddir = './profileImgs/';
+	$_SESSION['profileOps.php.msg'] = json_encode($_POST);
+	$gravatarFlag = '';
+
+	if( isset($_POST['image_src']) )
+	{
+		if( $_POST['image_src'] == 'gravatar' )
+		{
+			$gravatarFlag = 'grav-';
+		}
+	}
+	
+	$uploaddir = "./profileImgs/$gravatarFlag";
 	$uploadfile = $uploaddir . $_SESSION['authenticationFlag']['user_id'] . '.jpg';
 	$uploadfile = str_replace('.php', '.txt', $uploadfile);//prevent .php files from being uploaded
 
@@ -43,6 +54,11 @@ else if( isset($_POST['edit_user_memb']) )
 if( isset($_GET['channel_archive_state']) && isset($_GET['archive_state']) )
 {	
 	setChannelArchiveState($_GET['channel_archive_state'] , $_GET['archive_state']);
+}
+
+if( isset($_POST['remove_profile_img']) )
+{
+	unlink($_POST['remove_profile_img']);
 }
 
 header('Location: profile.php');
