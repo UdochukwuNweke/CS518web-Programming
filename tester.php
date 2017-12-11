@@ -4,34 +4,9 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-/*
-stream_context_set_default( [
-    'ssl' => [
-        'verify_peer' => false,
-        'verify_peer_name' => false,
-    ],
-]);
-*/
-
-include('services.php');
-$img = 'https://pbs.twimg.com/profile_images/694021299891343360/CVACQUXm_400x400.jpg';
-
-
-
-$img = urlencode($img);
-$dflag = $img;
-
-$email = 'preciousudochi@gmail.com';
-$email = strtolower(trim($email));
-$email = md5($email);
-$gravatar = 'https://www.gravatar.com/avatar/' . $email . "?d=$dflag&f=y";
-
-$res = getResponseCode($gravatar);
-var_dump($res);
-if( $res == '200' )
-{
-  echo "<img src='$gravatar'/>";
-}
+$email = 'mater@rsprings.gov';
+$password = '@mater';
+var_dump( login($email, $password) );
 
 /*
 
