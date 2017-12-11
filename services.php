@@ -3,7 +3,7 @@
 date_default_timezone_set('America/New_York');
 
 $serverName = 'localhost';
-$dbUserName = 'admin';
+$dbUserName = 'unweke';
 $dbPassword = 'M0n@rch$';
 $dbname = 'CS518DB';
 
@@ -50,6 +50,16 @@ CS518 Tables
 		user_id
 		role_type
 */
+
+
+//https://stackoverflow.com/a/37274332
+stream_context_set_default( [
+    'ssl' => [
+        'verify_peer' => false,
+        'verify_peer_name' => false,
+    ],
+]);
+
 
 //web service - start
 if( $_SERVER['REQUEST_METHOD'] == 'POST' )
@@ -110,7 +120,7 @@ function processGetPostWebServiceRequest($request)
 	);*/
 
 	printChannelMsg(
-		$request['channel_info'], 
+		$request['channel_info'],
 		$request['msg_extra_params'],
 		$request['user_id'],
 		$request['fname'],
@@ -294,10 +304,15 @@ function deleteReaction($reactionID)
  * @param string content: the post content
  * @return (bool) true - if post successful, false - otherwise
  */
-function post($user_id, $fname, $lname, $channel_id, $parent_id, $content)
+function post($user_id, $fname, $lname, $channel_id, $parent_id, $content, $extra=array())
 {
 	$datetime = date('Y-m-d H:i:s');
 	$hasRows = false;
+
+	if( isset($extra['pair_user_id']) == false )
+	{
+		$extra['pair_user_id'] = "";
+	}
 
 	try
 	{
@@ -321,14 +336,15 @@ function post($user_id, $fname, $lname, $channel_id, $parent_id, $content)
 				string content
 			*/
 
-			$sqlQuery = $conn -> prepare('INSERT INTO  Post (user_id, fname, lname, channel_id, parent_id, datetime, content) VALUES (?, ?, ?, ?, ?, ?, ?)');
+			$sqlQuery = $conn -> prepare('INSERT INTO  Post (user_id, fname, lname, channel_id, parent_id, pair_user_id, datetime, content) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
 			$sqlQuery -> bind_param(
-				'issiiss', 
+				'issiisss', 
 				$user_id,
 				$fname,
 				$lname,
 				$channel_id, 
 				$parent_id,
+				$extra['pair_user_id'],
 				$datetime,
 				$content
 			);
@@ -764,14 +780,6 @@ function genericQuery($sqlQuery)
 function getImgLinksFromText($post)
 {
 	$links = getLinksFromText($post);
-	//https://stackoverflow.com/a/37274332
-	stream_context_set_default( [
-	    'ssl' => [
-	        'verify_peer' => false,
-	        'verify_peer_name' => false,
-	    ],
-	]);
-
 	$imgLinks = array();
 
 	for($i = 0; $i < count($links); $i++)
@@ -886,6 +894,11 @@ function getMsgDiv($post_id, $user_id, $fname, $lname, $datetime, $content, $par
 	$reactions = genericGetAll('Reaction', 'WHERE post_id=' . $post_id);
 	$reactionDetails = array();
 
+	if( isset($msgExtraParams['pair_user_id']) == false )
+	{
+		$msgExtraParams['pair_user_id'] = "";
+	}
+
 	//set reaction statistics - start
 	for($i = 0; $i < count($reactions); $i++)
 	{
@@ -930,6 +943,7 @@ function getMsgDiv($post_id, $user_id, $fname, $lname, $datetime, $content, $par
 		echo '<input value="'. $post_id . '" type="hidden" name="post_id">';//used for knowing post to delete
 		echo '<input value="'. $parent_id . '" type="hidden" name="parent_id">';//used to show if this msg is a reply
 		echo '<input value="'. $channel_id . '" type="hidden" name="channel_id">';//used to know channel for a reply msg
+		echo '<input value="'. $msgExtraParams['pair_user_id'] . '" type="hidden" name="pair_user_id">';//for reply in direct msg
 		
 		//echo '<input placeholder="Enter reply" type="text" name="post">';
 		echo '<textarea type="text" placeholder="Enter reply" name="post" style="margin-top: 0px; margin-bottom: 0px; height: 30px;"></textarea>';
@@ -967,12 +981,15 @@ function getMsgDiv($post_id, $user_id, $fname, $lname, $datetime, $content, $par
 
 			echo '<input class="pure-button" type="hidden" name="reaction">';
 		}
-		
+		//generate reaction fields - end
 		echo '<input type="hidden" name="MAX_FILE_SIZE" value="5048576">';
 		echo '<input onclick="scrollToTop()" type="file" id="upload-photo-' . $post_id . '" name="mkfile" style="opacity: 0;position: absolute;z-index: -1;" />';
-		//generate reaction fields - end
 		echo '<br><input type="checkbox" name="pre_tag"> Pre-formated';
 		echo '<label for="upload-photo-' . $post_id . '" style="cursor: pointer;">   &#128247; Upload image (5MB)</label>';
+
+		echo '<input onclick="scrollToTop()" type="file" id="upload-file-' . $post_id . '" name="mkfile-gen" style="opacity: 0;position: absolute;z-index: -1;" />';
+		echo '<label for="upload-file-' . $post_id . '" style="cursor: pointer;">   &#128194; Upload file (5MB)</label>';
+	
 	echo '</form>';
 	
 	echo '<br>';
@@ -1024,13 +1041,24 @@ function getSingleMessage($post_id, $channel_id, $auth_user_id, $msgExtraParams=
 
 function printChannelMsg($channelInfo, $msgExtraParams, $user_id, $fname, $lname)
 {
+	if( isset($msgExtraParams['pair_user_id']) == false )
+	{
+		$msgExtraParams['pair_user_id'] = "";
+	}
+
 	$threadFlag = '';
+	$directMsgFlag = '';
 	if( $channelInfo['post'] != -1 )
 	{
 		$threadFlag = ' (Replies to post: ' . $channelInfo['post'] . ')';
 	}
 
-	echo '<h3>' . $fname . ' ' . $lname . ' @ ' . $channelInfo['channelName'] . $threadFlag . '</h3>';
+	if( strlen($msgExtraParams['pair_user_id']) == 0 )
+	{
+		$directMsgFlag = $fname . ' ' . $lname . ' @ ' . $channelInfo['channelName'];
+	}
+
+	echo '<h3>' . $directMsgFlag . $threadFlag . '</h3>';
 
 	if( $channelInfo['post'] != -1 )
 	{
@@ -1058,24 +1086,35 @@ function printChannelMsg($channelInfo, $msgExtraParams, $user_id, $fname, $lname
 
 function getMessages($channel_id, $auth_user_id, $parent_id=-1, $msgExtraParams=array())
 {
-	$max = 0;
-	if( isset($msgExtraParams['max']) )
+	if( isset($msgExtraParams['pair_user_id']) == false )
 	{
-		$max = $msgExtraParams['max'];
+		$msgExtraParams['pair_user_id'] = "";
+	}
+
+	if( isset($msgExtraParams['max']) == false )
+	{
+		$msgExtraParams['max'] = 0;
 	}
 
 	
 	$pagination = setPagination( $msgExtraParams['page_size'], $msgExtraParams['page'] );
 	$query = 'SELECT * FROM Post' . 
 	' WHERE channel_id=' . $channel_id  
-	. ' AND ' . 'parent_id=' . $parent_id 
+	. ' AND ' . 'parent_id=' . $parent_id
+	. ' AND ' . 'pair_user_id="' . $msgExtraParams['pair_user_id'] . '"'
 	. ' ORDER BY post_id DESC'
 	. $pagination
 	;	
 	
 	//$posts = genericGetAll('Post', $orderbyClause . 'WHERE channel_id=' . $channel_id  . ' AND ' . 'parent_id=' . $parent_id);
 	$posts = genericQuery($query);
-	getHTMLForMessages($posts, $channel_id, $auth_user_id, $max, $msgExtraParams);
+	getHTMLForMessages(
+		$posts, 
+		$channel_id, 
+		$auth_user_id, 
+		$msgExtraParams['max'], 
+		$msgExtraParams
+	);
 
 	if( count($posts) == 0 )
 	{
@@ -1135,7 +1174,18 @@ function getStatsUsers()
 	return $users;
 }
 
-function getHTMLForUser($user)
+function getPairUserID($pair)
+{
+	if( count($pair) < 2 )
+	{
+		return '';
+	}
+
+	sort($pair);
+	return $pair[0] . '.' . $pair[1];
+}
+
+function getHTMLForUser($curUser, $user, $userGetParam='user')
 {
 	$onlineFlag = '';
 	if( strlen($user['fname']) > 4  )
@@ -1148,8 +1198,8 @@ function getHTMLForUser($user)
 		$onlineFlag = '&#9711;';
 	}
 
-	$html = '<a style="color: inherit; text-decoration: none;" href="main.php?user=' 
-		. $user['user_id'] 
+	$html = '<a style="color: inherit; text-decoration: none;" href="main.php?' . $userGetParam . '=' 
+		. getPairUserID(array($curUser['user_id'], $user['user_id']))
 		. '">' 
 		. $onlineFlag . ' ' . $user['fname'] . ' ' . $user['lname']
 		. '</a> <br>';
@@ -1209,6 +1259,23 @@ function getKRandStr($k)
 	}
 
 	return $randStr;
+}
+
+function getResponseCode($url)
+{
+	$response = '404';
+	
+	$header = get_headers($url, 1);
+	if( count($header) != 0 )
+	{
+		$header = explode(' ', $header[0]);
+		if( count($header) > 1 )
+		{
+			return $header[1];
+		}
+	}
+
+	return $response;
 }
 
 ?>
