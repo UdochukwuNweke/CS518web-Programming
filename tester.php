@@ -5,6 +5,10 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 include('services.php');
+
+
+/*
+
 $users = getStatsUsers();
 
 for($i = 0; $i<count($users); $i++)
@@ -13,7 +17,6 @@ for($i = 0; $i<count($users); $i++)
 	echo '<br>';
 }
 
-/*
 $post = 'The quick brown fox jumped https://pbs.twimg.com/profile_images/694021299891343360/CVACQUXm_400x400.jpg, over the lazy http://php.net/manual/en/function.stream-context-create.php https://pbs.twimg.com/media/DO3SOJNX0AM0h_x.jpg';
 print_r(getImgLinksFromText($post));
 */
@@ -111,3 +114,24 @@ else
 */
 
 ?>
+
+<html>
+  <head>
+    <title>reCAPTCHA demo: Simple page</title>
+     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+     <script type='text/javascript'>
+ 	function reCaptchad(){
+		document.getElementById("myButton").disabled = false;
+	}
+     </script>
+  </head>
+  <body>
+    <form action="?" method="POST">
+      <div class="g-recaptcha" data-sitekey="6Le0vAgUAAAAAH_ZWM8tw3It6jkrqLHkFFTMOW-J" 
+		data-callback="reCaptchad"></div>
+      <br/>
+      <input id="myButton" type="submit" value="Submit" disabled='true'>
+    </form>
+  </body>
+</html>
+
