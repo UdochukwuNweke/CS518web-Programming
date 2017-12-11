@@ -120,20 +120,18 @@ else
     <title>reCAPTCHA demo: Simple page</title>
      <script src="https://www.google.com/recaptcha/api.js" async defer></script>
      <script type='text/javascript'>
- 	function reCaptchad(dat)
+ 	
+ 	var correctCaptcha = function(response) 
  	{
-		document.getElementById("myButton").disabled = false;
-		conso
-	}
+        alert(response);
+    };
+    
      </script>
   </head>
   <body>
-    <form action="?" method="POST">
-      <div class="g-recaptcha" data-sitekey="6LcOXTwUAAAAAGgmDXzUSZMCzjrkTy25gfaah-_e" 
-		data-callback="reCaptchad"></div>
-      <br/>
-      <input id="myButton" type="submit" value="Submit" disabled='true'>
-    </form>
+    
+    <div class="g-recaptcha" data-sitekey="6LcOXTwUAAAAAGgmDXzUSZMCzjrkTy25gfaah-_e"></div>
+
   </body>
 </html>
 
