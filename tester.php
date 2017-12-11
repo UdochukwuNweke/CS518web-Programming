@@ -4,6 +4,8 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+include('services.php');
+
 $email = 'mater@rsprings.gov';
 $password = '@mater';
 var_dump( login($email, $password) );
