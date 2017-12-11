@@ -2,7 +2,7 @@
 ob_start();//https://stackoverflow.com/a/9709170
 session_start();
 
-$debug = true;
+$debug = false;
 /*
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
