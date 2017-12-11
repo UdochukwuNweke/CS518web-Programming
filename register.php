@@ -48,9 +48,11 @@ else
     $context  = stream_context_create($options);
 	$result = file_get_contents($url, false, $context);
 
+	var_dump($result);
+
 	if ($result === FALSE ) 
     { 
-      	$_SESSION['register.php.msg'] = 'Error processing CAPTCHA, please contact admin';
+      	$_SESSION['register.php.msg'] = 'Error1 processing CAPTCHA, please contact admin';
 
 		header('Location: index.php');
 		exit;
@@ -58,7 +60,7 @@ else
 
     if( isset($result['success']) == false )
     {
-    	$_SESSION['register.php.msg'] = 'Error processing CAPTCHA, please contact admin';
+    	$_SESSION['register.php.msg'] = 'Error2 processing CAPTCHA, please contact admin';
 
 		header('Location: index.php');
 		exit;
