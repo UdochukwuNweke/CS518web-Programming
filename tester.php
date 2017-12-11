@@ -4,8 +4,34 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-include('services.php');
+/*
+stream_context_set_default( [
+    'ssl' => [
+        'verify_peer' => false,
+        'verify_peer_name' => false,
+    ],
+]);
+*/
 
+include('services.php');
+$img = 'https://pbs.twimg.com/profile_images/694021299891343360/CVACQUXm_400x400.jpg';
+
+
+
+$img = urlencode($img);
+$dflag = $img;
+
+$email = 'preciousudochi@gmail.com';
+$email = strtolower(trim($email));
+$email = md5($email);
+$gravatar = 'https://www.gravatar.com/avatar/' . $email . "?d=$dflag&f=y";
+
+$res = getResponseCode($gravatar);
+var_dump($res);
+if( $res == '200' )
+{
+  echo "<img src='$gravatar'/>";
+}
 
 /*
 
@@ -115,23 +141,4 @@ else
 
 ?>
 
-<html>
-  <head>
-    <title>reCAPTCHA demo: Simple page</title>
-     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-     <script type='text/javascript'>
- 	
- 	var correctCaptcha = function(response) 
- 	{
-        alert(response);
-    };
-    
-     </script>
-  </head>
-  <body>
-    
-    <div class="g-recaptcha" data-sitekey="6LcOXTwUAAAAAGgmDXzUSZMCzjrkTy25gfaah-_e"></div>
-
-  </body>
-</html>
 

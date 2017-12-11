@@ -19,7 +19,6 @@ if( $GLOBALS['debug'] === false )
 }
 parsePost();
 
-
 function authenticateUser()
 {
 	if( isset($_SESSION['authenticationFlag']) === false )
@@ -79,6 +78,7 @@ function authenticateUser()
 					'paginationSize' => 10,
 				);
 			$_SESSION['authenticationFlag'] = $userDetails;
+			$_SESSION['authenticationFlag']['email'] = $_POST["email"];
 			unset($_SESSION['index.php.msg']);
 		}
 	}
@@ -116,7 +116,6 @@ function parsePost()
 		//return;
 	}
 
-
 	if( isset($_POST['channel_state']) )
 	{
 		if( $_POST['channel_state'] != 'ACTIVE' )
@@ -131,7 +130,6 @@ function parsePost()
 	
 	if( isset($_POST['delete']) ) 
 	{
-
 		//delete
 		if( $_SESSION['authenticationFlag']['role_type'] == 'ADMIN' )
 		{
@@ -216,7 +214,11 @@ function parsePost()
 				$content = '<pre>' . $content . '</pre>';
 			}
 
-			post($user_id, $fname, $lname, $channel_id, $parent_id, $content);
+			$extra = array(
+				'pair_user_id' => $_POST['pair_user_id']
+			);
+
+			post($user_id, $fname, $lname, $channel_id, $parent_id, $content, $extra);
 			focusOnPost( $_POST['post_id'] );
 		}
 		else if( isset($_POST['reaction']) )
@@ -526,7 +528,7 @@ Direct Messages:
 	echo '<ul style="list-style-type:none;">';//credit: https://stackoverflow.com/a/9709788
 	for($i = 0; $i<count($users); $i++)
 	{
-		echo '<li>' . getHTMLForUser( $users[$i] ) . '</li>';
+		echo '<li>' . getHTMLForUser( $_SESSION['authenticationFlag'], $users[$i], 'pair_user' ) . '</li>';
 	}
 	echo '</ul>';
 ?>
@@ -538,6 +540,9 @@ Direct Messages:
 	<?php
 		$msgExtraParams = array();
 		$msgExtraParams['page_size'] = $_SESSION['config']['paginationSize'];
+		$msgExtraParams['pair_user_id'] = "";//default not a direct msg
+		$formPostAddr = '#';
+
 		if( isset($_GET['page']) )
 		{
 			$msgExtraParams['page'] = $_GET['page'];
@@ -551,8 +556,8 @@ Direct Messages:
 		{	
 			$msgExtraParams['page'] = 1;
 		}
+
 		printPagePanel( $_SESSION['config']['history_size'] );
-		
 		$channelInfo = getCurChannel();
 		$reactionTypes = genericGetAll('Reaction_Type');
 
@@ -574,18 +579,34 @@ Direct Messages:
 
 			if( isset($_GET['channel']) )
 			{
+				$formPostAddr = 'channel='. $channelInfo['channelName'];
 				printChannelMsg(
-					$channelInfo, 
+					$channelInfo,
 					$msgExtraParams, 
 					$_SESSION['authenticationFlag']['user_id'],
 					$_SESSION['authenticationFlag']['fname'],
 					$_SESSION['authenticationFlag']['lname']
 				);
 			}
-			else if( isset($_GET['user']) )
+			else if( isset($_GET['pair_user']) )
 			{
+				
+				$channelInfo['channelId'] = -1;
+				$msgExtraParams['pair_user_id'] = $_GET['pair_user'];
+				$formPostAddr = 'pair_user=' . $msgExtraParams['pair_user_id'];
+				
+				$pairUser = explode('.', $msgExtraParams['pair_user_id']);
+				if( $pairUser[0] == $_SESSION['authenticationFlag']['user_id'] )
+				{
+					$pairUser = $pairUser[1];
+				}
+				else
+				{
+					$pairUser = $pairUser[0];	
+				}
+				
 				//direct msg
-				$user = genericGetFromArr($users, $_GET['user'], $type='user_id');
+				$user = genericGetFromArr($users, $pairUser, $type='user_id');
 
 				echo '<h3>' 
 				. $_SESSION['authenticationFlag']['fname'] 
@@ -596,8 +617,16 @@ Direct Messages:
 				. ' (direct messages)'
 				. '</h3>';
 				
-				echo '<br><br>';
-				echo '<hr class="style13">';
+				//echo '<br><br>';
+				//echo '<hr class="style13">';
+				
+				printChannelMsg(
+					$channelInfo,
+					$msgExtraParams, 
+					$_SESSION['authenticationFlag']['user_id'],
+					$_SESSION['authenticationFlag']['fname'],
+					$_SESSION['authenticationFlag']['lname']
+				);
 			}
 
 		echo '</div>';
@@ -605,9 +634,10 @@ Direct Messages:
 
 		if( $channelInfo['state'] == 'ACTIVE' )
 		{
-			echo '<form class="pure-form" enctype="multipart/form-data" action="main.php?channel=' . $channelInfo['channelName'] . '" method="post">';
+			echo '<form class="pure-form" enctype="multipart/form-data" action="main.php?' . $formPostAddr . '" method="post">';
 			echo '<fieldset>';
 			echo '<input type="hidden" name="channel_id" value="' . $channelInfo['channelId'] . '">';
+			echo '<input type="hidden" name="pair_user_id" value="' . $msgExtraParams['pair_user_id'] . '">';
 			echo '<textarea type="text" size="90%" name="post" placeholder="Enter message here" style="margin-top: 0px; margin-bottom: 0px; width: 380px; height: 35px;"></textarea>';
 			echo '<input type="submit" value="post" class="pure-button pure-button-primary">';
 			echo '<br><input type="checkbox" name="pre_tag"> Pre-formated';
@@ -785,7 +815,7 @@ Direct Messages:
 		}
 	}
 
-	function continuousUpdate(payload)
+	function continuousUpdate_obsolete(payload)
 	{
 		console.log('\ncontinuousUpdate(), payload:', payload);
 
@@ -822,8 +852,21 @@ Direct Messages:
 
 
 	function scrolling(payload)
-	{	
+	{
+		var uriParams = processURL();
 		payload = JSON.parse(payload);
+
+		//update details
+		if( uriParams.channel == undefined )
+		{
+			payload.channel_info.channelId = -1;
+		}
+
+		if( uriParams.pair_user )
+		{
+			payload.msg_extra_params.pair_user_id = uriParams.pair_user;
+		}
+		
 		console.log('scrolling, updating UI');
 		httpPost({'getPost': payload}, './services.php', function(response)
 	    {
