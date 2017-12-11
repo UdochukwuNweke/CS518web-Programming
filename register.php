@@ -52,15 +52,17 @@ else
 
 	if ($result === FALSE ) 
     { 
-      	$_SESSION['register.php.msg'] = 'Error1 processing CAPTCHA, please contact admin' . json_encode($result);
+      	$_SESSION['register.php.msg'] = 'Error1 processing CAPTCHA, please contact admin';
 
 		header('Location: index.php');
 		exit;
     }
 
+    $result = json_decode($result, true);
+
     if( isset($result['success']) == false )
     {
-    	$_SESSION['register.php.msg'] = 'Error2 processing CAPTCHA, please contact admin' . json_encode($result);
+    	$_SESSION['register.php.msg'] = 'Error2 processing CAPTCHA, please contact admin';
 
 		header('Location: index.php');
 		exit;
