@@ -14,8 +14,8 @@
 	//credit: https://gist.github.com/asika32764/b204ff4799d577fd4eef
 	function gitLogin()
 	{
-		define('OAUTH2_CLIENT_ID', 'db18a606b6ad10c58dbd');
-		define('OAUTH2_CLIENT_SECRET', '65038ec95f062676af5e85df6e649dc0394c1ac6');
+		define('OAUTH2_CLIENT_ID', '46645dec093d50de6f5b');
+		define('OAUTH2_CLIENT_SECRET', '1c397789d0056cad8172505a0d5dfdb7faef10be');
 
 		$authorizeURL = 'https://github.com/login/oauth/authorize';
 		$tokenURL     = 'https://github.com/login/oauth/access_token';
