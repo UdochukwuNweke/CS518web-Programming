@@ -92,7 +92,6 @@ function authenticateUser()
 				exit;
 			}
 
-			//CAUTION DUPLICATE WITH index.php - start
 			$_SESSION['config'] = array(
 					'history_size' => 10,
 					'paginationSize' => 10,
@@ -101,7 +100,6 @@ function authenticateUser()
 			$_SESSION['authenticationFlag'] = $userDetails;
 			$_SESSION['authenticationFlag']['email'] = $_POST["email"];
 			unset($_SESSION['index.php.msg']);
-			//CAUTION DUPLICATE WITH index.php - end
 		}
 	}
 }

@@ -6,6 +6,14 @@ error_reporting(E_ALL);
 
 include('services.php');
 
+
+/*
+$email = 'mater@rsprings.gov';
+$password = '@mater';
+var_dump( login($email, $password) );
+*/
+
+
 /*
 $user = 17;
 $two_factor_active = 1;
@@ -99,12 +107,6 @@ postReaction($reaction_type_id, $post_id, $user_id, $fname, $lname);
 
 //echo deleteReaction($reaction_id);
 
-
-/*
-$email = 'mater@rsprings.gov';
-$password = '@mater';
-var_dump( login($email, $password) );
-*/
 
 
 

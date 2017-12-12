@@ -26,7 +26,7 @@
 	<div style="text-align:center; font-size: 40px; color: #3B0029;">
 		<form class="pure-form" action="main.php?channel=general" method="post">
 			<fieldset>
-				<p>Code is case sentive</p>
+				<p>Code is case sensitive</p>
 			</fieldset>
 
 		 	<fieldset>
