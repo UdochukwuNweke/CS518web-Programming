@@ -4,10 +4,11 @@ session_start();
 
 $debug = false;
 
+/*
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
-
+*/
 
 include('services.php');
 
@@ -82,7 +83,6 @@ function authenticateUser()
 				//consider not sending email too often
 				sendEmail($_POST["email"], 'Security code: ' . $randStr . ' expires in 10mins', 'CS Slack Security code');
 				
-				/*
 				setTwoFactor(
 					$userDetails['user_id'],
 					1,
@@ -90,9 +90,8 @@ function authenticateUser()
 				);
 				$_SESSION['curPost'] = $_POST;
 
-				//header('Location: 2FA.php');
-				//exit;
-				*/
+				header('Location: 2FA.php');
+				exit;
 			}
 
 			$_SESSION['config'] = array(
