@@ -69,7 +69,13 @@ function gitLogin()
 
 	if (session('access_token')) 
 	{
-	    $_SESSION['authenticationFlag'] = array('fname' => 'admin', 'lname' => '', 'email' => 'admin@slack.com');
+	    $_SESSION['authenticationFlag'] = array(
+	    	'role_type' => 'DEFAULT', 
+	    	'user_id' => 17, 
+	    	'fname' => 'admin', 
+	    	'lname' => '', 
+	    	'email' => 'admin@slack.com'
+	    );
 	} 
 }
 
@@ -103,7 +109,7 @@ function session($key, $default = NULL)
 function authenticateUser()
 {
 	gitLogin();
-	
+
 	$_SESSION['config'] = array(
 				'history_size' => 10,
 				'paginationSize' => 10,
