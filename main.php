@@ -206,6 +206,12 @@ function parsePost()
 				{
 					$exn = 'exn';
 				}
+
+				if( $exn == 'php' )
+				{
+					$exn = 'txt';
+				}
+
 				$uploadfile = './postImgs/' . getKRandStr(10) . '.' . $exn;
 				
 				if( $type == 'image' )
