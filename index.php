@@ -139,9 +139,8 @@
 				    </fieldset>
 				</form>
 
-				<h3> Git Login </h3>
 				<?php
-				
+
 					if (session('access_token')) 
 					{
 					    echo '<h3>Git: Logged In</h3>';
