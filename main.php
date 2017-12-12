@@ -3,11 +3,11 @@ ob_start();//https://stackoverflow.com/a/9709170
 session_start();
 
 $debug = false;
-/*
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
-*/
+
 
 include('services.php');
 
