@@ -380,6 +380,7 @@ function postReaction($reaction_type_id, $post_id, $user_id, $fname, $lname)
 {
 	//avoid duplicate reaction - start
 	$doesReactionExist = genericGetAll('Reaction', 'WHERE post_id=' . $post_id . ' AND user_id='. $user_id);
+	$updateReactionFlag = -1;
 	if( count($doesReactionExist) != 0 )
 	{
 		//ensure reaction retrieved belongs to user attempting to send reaction
@@ -392,12 +393,13 @@ function postReaction($reaction_type_id, $post_id, $user_id, $fname, $lname)
 			}
 			else
 			{
-				//delete prev reaction
-				if( deleteReaction($doesReactionExist[0]['reaction_id']) === false )
+				//delete prev reaction: bad, update old reaction 
+				/*if( deleteReaction($doesReactionExist[0]['reaction_id']) === false )
 				{
 					//delete unsuccessful, abort
 					return false;
-				}
+				}*/
+				$updateReactionFlag = $doesReactionExist[0]['reaction_id'];
 			}
 		}
 	}
@@ -426,15 +428,29 @@ function postReaction($reaction_type_id, $post_id, $user_id, $fname, $lname)
 					lname
 			*/
 
-			$sqlQuery = $conn -> prepare('INSERT INTO  Reaction (reaction_type_id, post_id, user_id, fname, lname) VALUES (?, ?, ?, ?, ?)');
-			$sqlQuery -> bind_param(
-				'iiiss', 
-				$reaction_type_id,
-				$post_id,
-				$user_id,
-				$fname,
-				$lname
-			);
+			if( $updateReactionFlag == -1 )
+			{
+				//new reaction
+				$sqlQuery = $conn -> prepare('INSERT INTO  Reaction (reaction_type_id, post_id, user_id, fname, lname) VALUES (?, ?, ?, ?, ?)');
+				$sqlQuery -> bind_param(
+					'iiiss', 
+					$reaction_type_id,
+					$post_id,
+					$user_id,
+					$fname,
+					$lname
+				);
+			}
+			else
+			{
+				//update old reaction
+				$sqlQuery = $conn -> prepare('UPDATE Reaction SET reaction_type_id = ? WHERE reaction_id = ?');
+				$sqlQuery -> bind_param(
+					'ii', 
+					$reaction_type_id,
+					$updateReactionFlag
+				);
+			}
 
 
 			$sqlQuery -> execute();
@@ -647,6 +663,135 @@ function addChannel($name, $purpose, $type, $creator_id)
 					$hasRows = true;
 				}
 			}
+		}
+	}
+	catch(Exception $e) 
+	{
+		echo 'Message: ' . $e -> getMessage();
+	}
+
+	return $hasRows;
+}
+
+function validate2FAChallenge($user_id, $inputToken)
+{
+	$settings = genericQuery("SELECT * FROM Settings WHERE user_id=$user_id");
+	$status = false;
+
+	if( count($settings) == 0 )
+	{
+		//user is not enrolled in 2FA
+		$status = True;
+	}
+	else
+	{
+		$settings = $settings[0];
+		if( isset($settings['two_factor_active']) )
+		{
+			if( $settings['two_factor_active'] == 1 )
+			{
+				if( strtotime($settings['challenge_expr']) > strtotime(date('Y-m-d H:i:s')) )
+				{
+					//check if input
+					if( trim($settings['two_factor_challenge']) == trim($inputToken) )
+					{
+						$status = True;
+					}
+				}
+			}
+		}
+	}
+
+	return $status;
+}
+
+function is2FAUser($user_id)
+{
+	$settings = genericQuery("SELECT two_factor_active FROM Settings WHERE user_id=$user_id");
+	$status = false;
+
+	if( count($settings) != 0 )
+	{
+		$settings = $settings[0];
+		if( isset($settings['two_factor_active']) )
+		{
+			if( $settings['two_factor_active'] == 1 )
+			{
+				$status = true;
+			}
+		}
+	}
+
+	return $status;
+}
+
+function setTwoFactor($user_id, $two_factor_active, $two_factor_challenge='', $challengeMinsOffset=10)
+{
+	$previousSetting = genericQuery("SELECT settings_id FROM Settings WHERE user_id=$user_id LIMIT 1");
+	$hasRows = false;
+
+	$challenge_expr = date(
+		'Y-m-d H:i:s', 
+		strtotime("+$challengeMinsOffset minutes", 
+			strtotime(date('Y-m-d H:i:s'))
+		)
+	);
+
+	$two_factor_challenge = trim($two_factor_challenge);
+	if( strlen($two_factor_challenge) == 0 )
+	{
+		$two_factor_challenge = getKRandStr(4);	
+	}
+	
+	
+	try
+	{
+		$conn = new mysqli($GLOBALS['serverName'], $GLOBALS['dbUserName'], $GLOBALS['dbPassword'], $GLOBALS['dbname']);
+
+		// Check connection
+		if( $conn -> connect_error ) 
+		{
+			// consider logging error
+			echo 'Connection failed: ' . $conn -> connect_error;
+		} 
+		else
+		{
+			if( count($previousSetting) == 0 )
+			{
+				echo 'insert';
+				//insert
+				$sqlQuery = $conn -> prepare('INSERT INTO  Settings (user_id, two_factor_active, challenge_expr, two_factor_challenge) VALUES (?, ?, ?, ?)');
+				$sqlQuery -> bind_param(
+					'iiss',
+					$user_id,
+					$two_factor_active,
+					$challenge_expr,
+					$two_factor_challenge
+				);
+			}
+			else
+			{
+				echo 'update';
+				//update
+				$sqlQuery = $conn -> prepare('UPDATE Settings SET two_factor_active = ?, challenge_expr = ?, two_factor_challenge = ? WHERE user_id = ?');
+				$sqlQuery -> bind_param(
+					'issi',
+					$two_factor_active,
+					$challenge_expr,
+					$two_factor_challenge,
+					$user_id
+				);
+			}
+			
+
+			$sqlQuery -> execute();
+			if( $conn -> affected_rows !== 0 )
+			{
+				$hasRows = true;
+			}
+
+			$sqlQuery -> close();
+			$conn -> close();
 		}
 	}
 	catch(Exception $e) 
@@ -1276,6 +1421,13 @@ function getResponseCode($url)
 	}
 
 	return $response;
+}
+
+function sendEmail($to, $email, $subject='subject', $from='unweke@cs.odu.edu')
+{
+	//credit: https://www.w3schools.com/php/func_mail_mail.asp
+	$headers = "From: $from" . "\r\n";
+	mail($to, $subject, $email, $headers);
 }
 
 ?>

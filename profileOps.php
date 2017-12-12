@@ -55,6 +55,10 @@ if( isset($_GET['channel_archive_state']) && isset($_GET['archive_state']) )
 {	
 	setChannelArchiveState($_GET['channel_archive_state'] , $_GET['archive_state']);
 }
+else if( isset($_GET['user_id']) && isset($_GET['2FA']) )
+{
+	setTwoFactor($_GET['user_id'], $_GET['2FA']);
+}
 
 if( isset($_POST['remove_profile_img']) )
 {

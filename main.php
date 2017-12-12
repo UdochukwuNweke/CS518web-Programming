@@ -72,11 +72,29 @@ function authenticateUser()
 			exit;
 		}
 		else
-		{
+		{	
+			if( is2FAUser($userDetails['user_id']) && validate2FAChallenge($userDetails['user_id'], $_POST['security_code']) == false )
+			{
+				$randStr = getKRandStr(4);
+				//consider not sending email too often
+				sendEmail($_POST["email"], 'Security code: ' . $randStr . ' expires in 10mins', 'CS Slack Security code');
+
+				setTwoFactor(
+					$userDetails['user_id'],
+					1,
+					$randStr
+				);
+				$_SESSION['curPost'] = $_POST;
+
+				header('Location: 2FA.php');
+				exit;
+			}
+
 			$_SESSION['config'] = array(
 					'history_size' => 10,
 					'paginationSize' => 10,
 				);
+
 			$_SESSION['authenticationFlag'] = $userDetails;
 			$_SESSION['authenticationFlag']['email'] = $_POST["email"];
 			unset($_SESSION['index.php.msg']);
@@ -88,6 +106,14 @@ function monitorURL()
 {
 	$shouldRedirectFlag = false;
 	$newLocation = $_SERVER['REQUEST_URI'];
+
+	//review - start
+	/*if( isset($_GET['channel']) === false )
+	{
+		$shouldRedirectFlag = true;
+		$newLocation .= '?channel=general';
+	}*/
+	//review - end
 
 	if( isset($_GET['page']) === false )
 	{

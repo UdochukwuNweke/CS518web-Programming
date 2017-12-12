@@ -6,9 +6,25 @@ error_reporting(E_ALL);
 
 include('services.php');
 
-$email = 'mater@rsprings.gov';
-$password = '@mater';
-var_dump( login($email, $password) );
+/*
+$user = 17;
+$two_factor_active = 1;
+$token = 'RSgz';
+#setTwoFactor($user, $two_factor_active, 2);
+if( validate2FAChallenge($user, $token) )
+{
+  echo 'Good';
+}
+else
+{
+  echo 'bad';
+}
+*/
+
+
+
+#$query = 'UPDATE Settings SET user_id = 17, WHERE condition;'
+#var_dump( genericQuery($query) );
 
 /*
 
@@ -117,5 +133,49 @@ else
 */
 
 ?>
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>CS418 Docker deployment system</title>
+<link rel="stylesheet" type="text/css" href="cs418deployment.css" />
+<script type="text/javascript" src="cs418deployment.js"></script>
+<script>
+  function authenticateWithGitHub()
+  {
+    //alert("hi there " + document.getElementById('csusername').value + "!");
+    //alert("https://github.com/login/oauth/authorize?client_id=c79fd74073885f907596&scope=repo&state="
+                  //                      +document.getElementById('csusername').value);
+    window.location.href = "https://github.com/login/oauth/authorize?client_id=3492f83caf07f246d432&scope=repo&state="
+          +document.getElementById('csusername').value;
+  }
+</script>
+</head>
+<body>
+<!-- TODO: add license for this code/html -->
+<h1>CS418 Docker Deployment System</h1>
+
+<p>This system is setup for students' use in testing the development of their projects for CS418 on a system that uses Docker (which is also used on Demo Day). To use the system:</p>
+
+<dl>
+  <dt>Enter your CS user id.</dt>
+  <dd>This is used to pull the repository you specified in Assignment 1 from the users directory in the class repository.</dd>
+
+  <dt>Authenticate</dt>
+  <dd>This will allow the system to deploy your code from GitHub.</dd>
+
+  <dt>Deploy your code</dt>
+  <dd>If authentication is successful, a "Dockerize my code" button will appear. Press it to deploy the code from your master branch.</dd>
+
+  <dt>Access &amp; Test your code</dt>
+  <dd>The system will return a URI where your deployed code can be accessed and a means to kill the instance.</dd>
+</dl>
+
+<form>
+  <label for="csusername">CS Username:</label>
+  <input type="text" value="unweke" placeholder="CS username" id="csusername" name="csusername" autocomplete="off" /><br>
+  <input type="submit" value="Find my repo" onclick="updateRepoFromCSUsername()" />
+</form>
 
 

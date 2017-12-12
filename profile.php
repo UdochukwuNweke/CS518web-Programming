@@ -297,7 +297,24 @@
 
 	  	<td align="center">
 	  		<div style="padding: 10px 0px 0px 10px; width:80%; height: 20%;">
-				<input type="checkbox" name="twoFA">
+
+	  			<?php
+	  				$checkFlag = is2FAUser( $_SESSION['authenticationFlag']['user_id'] );
+	  				
+	  				if( $checkFlag == true )
+	  				{
+	  					$checkFlag = 'checked';
+	  				}
+	  				else
+	  				{
+	  					$checkFlag = '';
+	  				}
+	  				
+
+					echo "<input $checkFlag onchange='edit2FA(this, " . $_SESSION['authenticationFlag'][
+	  					'user_id'] . ")' type='checkbox' name='2FA'>";
+				?>
+
 	  			Two-Factor Authentication
 			</div>
 	  	</td>
@@ -540,6 +557,21 @@
 
 			window.location.href = './profileOps.php?channel_archive_state=' + sender.value + '&archive_state=' + state;
 
+		}
+
+		function edit2FA(sender, user_id)
+		{
+			var state = '';
+			if( sender.checked === true )
+			{
+				state = 1;
+			}
+			else
+			{
+				state = 0;
+			}
+
+			window.location.href = './profileOps.php?2FA=' + state + '&user_id=' + user_id;
 		}
 
 		function searchForUser(sender, exclude_id)
