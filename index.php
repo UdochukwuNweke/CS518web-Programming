@@ -14,8 +14,8 @@
 	//credit: https://gist.github.com/asika32764/b204ff4799d577fd4eef
 	function gitLogin()
 	{
-		define('OAUTH2_CLIENT_ID', '83265684eb324f840f2c');
-		define('OAUTH2_CLIENT_SECRET', 'f80c17c2519bd1152525820d3942ab080a32103a');
+		define('OAUTH2_CLIENT_ID', '46645dec093d50de6f5b');
+		define('OAUTH2_CLIENT_SECRET', '1c397789d0056cad8172505a0d5dfdb7faef10be');
 
 		$authorizeURL = 'https://github.com/login/oauth/authorize';
 		$tokenURL     = 'https://github.com/login/oauth/access_token';
@@ -62,11 +62,11 @@
 		if (session('access_token')) 
 		{
 		    echo '<h3>Git: Logged In</h3>';
-		}
-		else
+		} 
+		else 
 		{
-			echo '<h3>Git: Not logged in</h3>';
-				echo '<p><a href="?action=login">Log In</a></p>';
+		    echo '<h3>Git: Not logged in</h3>';
+		    echo '<p><a href="?action=login">Log In</a></p>';
 		}
 	}
 
@@ -143,13 +143,13 @@
 				        </div>
 
 				        <div class="pure-control-group">
-				        	<input onchange="togglePass()" value="git_login" type="checkbox" name="git_login"> Git Login
 				            <button type="submit" class="pure-button pure-button-primary">Login</button>
 				        </div>
 
 				    </fieldset>
 				</form>
-				
+
+
 			</div>
 	    </td>
 
@@ -231,18 +231,6 @@
 			}
 
 			document.getElementById('loginForm').setAttribute('action', 'main.php' + aTag.search);
-		}
-
-		function togglePass()
-		{
-			if( document.getElementById('loginPass').disabled == true )
-			{
-				document.getElementById('loginPass').disabled = false;
-			}
-			else
-			{
-				document.getElementById('loginPass').disabled = true;
-			}
 		}
 
 	</script>
