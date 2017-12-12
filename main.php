@@ -2,7 +2,7 @@
 ob_start();//https://stackoverflow.com/a/9709170
 session_start();
 
-$debug = false;
+$debug = true;
 /*
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -21,6 +21,13 @@ parsePost();
 
 function authenticateUser()
 {
+	if( isset($_POST["git_login"]) )
+	{
+		var_dump($_POST);
+		header('Location: ?action=login');
+		exit;
+	}
+
 	if( isset($_SESSION['authenticationFlag']) === false )
 	{
 		$userDetails = array();
@@ -47,7 +54,6 @@ function authenticateUser()
 					$shouldRedirectFlag = true;
 				}
 			}
-			
 		}
 
 		if( $shouldRedirectFlag === true )
@@ -90,6 +96,7 @@ function authenticateUser()
 				exit;
 			}
 
+			//CAUTION DUPLICATE WITH index.php - start
 			$_SESSION['config'] = array(
 					'history_size' => 10,
 					'paginationSize' => 10,
@@ -98,6 +105,7 @@ function authenticateUser()
 			$_SESSION['authenticationFlag'] = $userDetails;
 			$_SESSION['authenticationFlag']['email'] = $_POST["email"];
 			unset($_SESSION['index.php.msg']);
+			//CAUTION DUPLICATE WITH index.php - end
 		}
 	}
 }

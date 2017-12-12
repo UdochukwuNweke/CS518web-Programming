@@ -61,13 +61,8 @@
 
 		if (session('access_token')) 
 		{
-		    echo '<h3>Logged In</h3>';
+		    $_SESSION['authenticationFlag'] = array('fname' => 'admin', 'lname' => '', 'email' => 'admin@slack.com');
 		} 
-		else 
-		{
-		    echo '<h3>Not logged in</h3>';
-		    echo '<p><a href="?action=login">Log In</a></p>';
-		}
 	}
 
 
@@ -125,7 +120,7 @@
 	    	<div style="padding: 10px 0px 0px 10px; width:80%; height: 20%;">
 				<h3> Login </h3>
 
-				<?php 
+				<?php
 					if( isset($_SESSION['index.php.msg']) )
 					{
 						echo '<strong><p style="color: red">' . $_SESSION['index.php.msg'] . '</p></strong>';
@@ -139,20 +134,17 @@
 				        </div>
 
 				        <div class="pure-control-group">
-				            <input name="password" type="password" placeholder="Password">
+				            <input id="loginPass" name="password" type="password" placeholder="Password">
 				        </div>
 
 				        <div class="pure-control-group">
+				        	<input onchange="togglePass()" value="git_login" type="checkbox" name="git_login"> Git Login
 				            <button type="submit" class="pure-button pure-button-primary">Login</button>
 				        </div>
+
 				    </fieldset>
 				</form>
 
-				<h3> Login with Git </h3>
-
-				<a href="?action=login">
-		    		<button type="submit" class="pure-button pure-button-primary">Login</button>
-		    	</a>
 
 			</div>
 	    </td>
@@ -236,6 +228,19 @@
 
 			document.getElementById('loginForm').setAttribute('action', 'main.php' + aTag.search);
 		}
+
+		function togglePass()
+		{
+			if( document.getElementById('loginPass').disabled == true )
+			{
+				document.getElementById('loginPass').disabled = false;
+			}
+			else
+			{
+				document.getElementById('loginPass').disabled = true;
+			}
+		}
+
 	</script>
 
 </body>
