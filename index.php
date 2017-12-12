@@ -58,6 +58,16 @@
 		    $_SESSION['access_token'] = $token->access_token;
 		    header('Location: ' . $_SERVER['PHP_SELF']);
 		}
+
+		if (session('access_token')) 
+		{
+		    echo '<h3>Git: Logged In</h3>';
+		}
+		else
+		{
+			echo '<h3>Git: Not logged in</h3>';
+				echo '<p><a href="?action=login">Log In</a></p>';
+		}
 	}
 
 
@@ -139,21 +149,7 @@
 
 				    </fieldset>
 				</form>
-
-				<h3> Git Login </h3>
 				
-				<?php
-					if (session('access_token')) 
-					{
-					    echo '<h3>Logged In</h3>';
-					}
-					else
-					{
-						echo '<h3>Not logged in</h3>';
-  						echo '<p><a href="?action=login">Log In</a></p>';
-					}
-				?>
-
 			</div>
 	    </td>
 
