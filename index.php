@@ -14,8 +14,8 @@
 	//credit: https://gist.github.com/asika32764/b204ff4799d577fd4eef
 	function gitLogin()
 	{
-		define('OAUTH2_CLIENT_ID', '46645dec093d50de6f5b');
-		define('OAUTH2_CLIENT_SECRET', '1c397789d0056cad8172505a0d5dfdb7faef10be');
+		define('OAUTH2_CLIENT_ID', '0386ef91c8e0dcd18eaa');
+		define('OAUTH2_CLIENT_SECRET', '2c80791de6c67c91936e9104641d0f33ed28b6c2');
 
 		$authorizeURL = 'https://github.com/login/oauth/authorize';
 		$tokenURL     = 'https://github.com/login/oauth/access_token';
@@ -57,16 +57,6 @@
 		    ));
 		    $_SESSION['access_token'] = $token->access_token;
 		    header('Location: ' . $_SERVER['PHP_SELF']);
-		}
-
-		if (session('access_token')) 
-		{
-		    echo '<h3>Git: Logged In</h3>';
-		} 
-		else 
-		{
-		    echo '<h3>Git: Not logged in</h3>';
-		    echo '<p><a href="?action=login">Log In</a></p>';
 		}
 	}
 
@@ -149,6 +139,19 @@
 				    </fieldset>
 				</form>
 
+				<h3> Git Login </h3>
+				<?php
+				
+					if (session('access_token')) 
+					{
+					    echo '<h3>Git: Logged In</h3>';
+					} 
+					else 
+					{
+					    echo '<h3>Git: Not logged in</h3>';
+					    echo '<p><a href="?action=login">Log In</a></p>';
+					}
+				?>
 
 			</div>
 	    </td>
