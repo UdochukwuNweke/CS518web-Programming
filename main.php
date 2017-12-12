@@ -80,8 +80,9 @@ function authenticateUser()
 				
 				$randStr = getKRandStr(4);
 				//consider not sending email too often
-				/*sendEmail($_POST["email"], 'Security code: ' . $randStr . ' expires in 10mins', 'CS Slack Security code');
+				sendEmail($_POST["email"], 'Security code: ' . $randStr . ' expires in 10mins', 'CS Slack Security code');
 				
+				/*
 				setTwoFactor(
 					$userDetails['user_id'],
 					1,
