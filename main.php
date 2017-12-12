@@ -77,6 +77,7 @@ function authenticateUser()
 		{	
 			if( is2FAUser($userDetails['user_id']) && validate2FAChallenge($userDetails['user_id'], $_POST['security_code']) == false )
 			{
+				/*
 				$randStr = getKRandStr(4);
 				//consider not sending email too often
 				sendEmail($_POST["email"], 'Security code: ' . $randStr . ' expires in 10mins', 'CS Slack Security code');
@@ -90,6 +91,7 @@ function authenticateUser()
 
 				//header('Location: 2FA.php');
 				//exit;
+				*/
 			}
 
 			$_SESSION['config'] = array(
