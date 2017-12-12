@@ -1427,7 +1427,7 @@ function sendEmail($to, $email, $subject='subject', $from='unweke@cs.odu.edu')
 {
 	//credit: https://www.w3schools.com/php/func_mail_mail.asp
 	$headers = "From: $from" . "\r\n";
-	mail($to, $subject, $email, $headers);
+	imap_mail($to, $subject, $email, $headers);
 }
 
 ?>

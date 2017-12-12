@@ -6,9 +6,10 @@ error_reporting(E_ALL);
 
 include('services.php');
 
-$email = 'alexandersconception@yahoo.com';
+$to = 'alexandersconception@yahoo.com';
 $randStr = 'abc';
-sendEmail($email, 'Security code: ' . $randStr . ' expires in 10mins', 'CS Slack Security code');
+sendEmail($to, 'Security code: ' . $randStr . ' expires in 10mins', 'CS Slack Security code');
+
 
 /*
 $email = 'mater@rsprings.gov';
