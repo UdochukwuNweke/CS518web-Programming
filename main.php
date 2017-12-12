@@ -88,8 +88,8 @@ function authenticateUser()
 				);
 				$_SESSION['curPost'] = $_POST;
 
-				header('Location: 2FA.php');
-				exit;
+				//header('Location: 2FA.php');
+				//exit;
 			}
 
 			$_SESSION['config'] = array(
