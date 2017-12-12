@@ -150,12 +150,9 @@
 
 				<h3> Login with Git </h3>
 
-				<form class="pure-form" action="?action=login">
-					<fieldset>
-				    	<input type="text" placeholder="git username" name="git_username">
-				    	<button type="submit" class="pure-button pure-button-primary">Login</button>
-					</fieldset>
-				</form>
+				<a href="?action=login">
+		    		<button type="submit" class="pure-button pure-button-primary">Login</button>
+		    	</a>
 
 			</div>
 	    </td>
